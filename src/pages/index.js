@@ -38,6 +38,7 @@ import vidTv from "../images/vid-tv.png"
 
 // Photography
 import photoBeautyLarge from "../images/photo-beauty-large.png"
+import photoBeauty from "../images/photo-beauty.png"
 import photoPeople from "../images/photo-people.png"
 
 // Team
@@ -48,11 +49,43 @@ import lauren from "../images/lauren.png"
 // BTS & Reviews
 import bts from "../images/bts.png"
 
-const LOREM =
-  "Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare. In nec lacinia consectetur placerat vestibulum sem odio. In feugiat elit fames eget lobortis turpis scelerisque tincidunt. Enim."
+/* ================================================================
+   DRAG-TO-SCROLL HOOK
+   Enables desktop mouse dragging + touch swiping like Figma
+   ================================================================ */
+
+const useDragScroll = () => {
+  const ref = React.useRef(null)
+  const isDragging = React.useRef(false)
+  const startX = React.useRef(0)
+  const scrollLeft = React.useRef(0)
+
+  const onMouseDown = e => {
+    if (!ref.current) return
+    isDragging.current = true
+    startX.current = e.pageX - ref.current.offsetLeft
+    scrollLeft.current = ref.current.scrollLeft
+  }
+  const onMouseLeave = () => {
+    isDragging.current = false
+  }
+  const onMouseUp = () => {
+    isDragging.current = false
+  }
+  const onMouseMove = e => {
+    if (!isDragging.current || !ref.current) return
+    e.preventDefault()
+    const x = e.pageX - ref.current.offsetLeft
+    const walk = (x - startX.current) * 1.5
+    ref.current.scrollLeft = scrollLeft.current - walk
+  }
+
+  return { ref, onMouseDown, onMouseLeave, onMouseUp, onMouseMove }
+}
 
 /* ================================================================
-   CONTACT MODAL  —  "Have a project you want to discuss?"
+   CONTACT MODAL  —  Exact Figma Node #325:1336
+   "Have a project you want to discuss?"
    ================================================================ */
 
 export const ModalContext = React.createContext({ isOpen: false, setIsOpen: () => {} })
@@ -75,53 +108,115 @@ const ContactModal = () => {
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="modal-card relative w-full max-w-[520px] rounded-[24px] bg-brand-blue p-6 sm:p-10 shadow-2xl my-auto"
+        className="modal-card relative w-full max-w-[1050px] rounded-[12px] bg-brand-blue p-6 sm:p-10 lg:p-14 shadow-2xl my-auto text-black"
+        style={{
+          boxShadow: "0px 4px 20px 0px rgba(0, 0, 0, 0.35)",
+        }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Close Button top-right */}
         <button
           onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-5 sm:top-5 sm:right-6 text-2xl font-bold text-white/80 hover:text-white transition"
+          className="absolute top-4 right-5 sm:top-6 sm:right-7 text-black hover:opacity-70 transition p-1"
           aria-label="Close"
         >
-          ✕
+          <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6" stroke="currentColor" strokeWidth="2.5" fill="none">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
-        <h3 className="text-2xl sm:text-[32px] font-extrabold text-white leading-tight mb-4 sm:mb-6 tracking-[-0.04em]">
-          Have a project you<br />want to discuss?
-        </h3>
-        <p className="text-[12px] sm:text-[13px] text-white/85 mb-5 sm:mb-6 leading-relaxed">
-          {LOREM.slice(0, 110)}.
-        </p>
-        <form className="space-y-3.5 sm:space-y-4" onSubmit={e => e.preventDefault()}>
-          <input
-            type="text"
-            placeholder="Full Name*"
-            required
-            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-brand-yellow"
-          />
-          <input
-            type="tel"
-            placeholder="Contact Number*"
-            required
-            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-brand-yellow"
-          />
-          <input
-            type="email"
-            placeholder="Email Address*"
-            required
-            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-brand-yellow"
-          />
-          <textarea
-            placeholder="Message"
-            rows={3}
-            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none resize-none focus:ring-2 focus:ring-brand-yellow"
-          />
-          <button
-            type="submit"
-            className="w-full rounded-[12px] bg-brand-yellow py-3 sm:py-3.5 text-[16px] sm:text-[18px] font-extrabold text-black hover:brightness-105 transition shadow-md"
-          >
-            Send
-          </button>
-        </form>
+
+        {/* 2-Column Layout matching Figma #325:1336 */}
+        <div className="grid gap-8 lg:grid-cols-[1fr_390px] lg:gap-14 items-start">
+          {/* Left Column: Heading + GDPR text */}
+          <div className="flex flex-col justify-between h-full space-y-6 sm:space-y-10">
+            <h3 className="text-3xl sm:text-5xl lg:text-[72px] font-extrabold text-white leading-[1.0] tracking-[-0.05em]">
+              Have a<br />
+              project you<br />
+              want to<br />
+              discuss?
+            </h3>
+
+            {/* GDPR Checkbox & Text */}
+            <div className="flex items-start gap-3 pt-4 sm:pt-10 max-w-[420px]">
+              <input
+                type="checkbox"
+                id="gdpr-check"
+                defaultChecked
+                className="mt-1 h-4 w-4 shrink-0 rounded-none border border-black bg-white accent-brand-blue cursor-pointer"
+              />
+              <label
+                htmlFor="gdpr-check"
+                className="text-xs sm:text-[15px] font-medium leading-[1.4] tracking-[-0.03em] text-black cursor-pointer select-none"
+              >
+                Lorem ipsum dolor sit amet consectetur. Nulla purus rhoncus at mattis. Et ac vitae ornare volutpat.
+              </label>
+            </div>
+          </div>
+
+          {/* Right Column: Form Fields */}
+          <form className="space-y-4 w-full max-w-[390px]" onSubmit={e => e.preventDefault()}>
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
+                Full Name*
+              </label>
+              <input
+                type="text"
+                placeholder="Full Name"
+                required
+                className="w-full h-[42px] sm:h-[45px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none"
+              />
+            </div>
+
+            {/* Contact Number */}
+            <div>
+              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
+                Contact Number*
+              </label>
+              <input
+                type="tel"
+                placeholder="Contact Number"
+                required
+                className="w-full h-[42px] sm:h-[45px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none"
+              />
+            </div>
+
+            {/* Email Address */}
+            <div>
+              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
+                Email Address*
+              </label>
+              <input
+                type="email"
+                placeholder="Email Address"
+                required
+                className="w-full h-[42px] sm:h-[45px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none"
+              />
+            </div>
+
+            {/* Message */}
+            <div>
+              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
+                Message
+              </label>
+              <textarea
+                placeholder="Message"
+                rows={3}
+                className="w-full h-[80px] sm:h-[90px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none resize-none"
+              />
+            </div>
+
+            {/* Send Button (Yellow, rounded-12px, white text) */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                className="h-[40px] w-[103px] rounded-[12px] bg-brand-yellow text-[18px] font-medium text-white hover:brightness-105 transition flex items-center justify-center tracking-[-0.03em] shadow-sm"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
@@ -329,7 +424,7 @@ const VideoIntro = () => (
 )
 
 /* ================================================================
-   4. VIDEO PRODUCTION
+   4. VIDEO PRODUCTION  —  Draggable / Carousel
    ================================================================ */
 
 const videoCategories = [
@@ -346,12 +441,12 @@ const videoCategories = [
 ]
 
 const VideoProduction = () => {
-  const scroller = React.useRef(null)
+  const dragScroll = useDragScroll()
   const scroll = dir => {
-    if (!scroller.current) return
-    const card = scroller.current.querySelector(".video-card")
+    if (!dragScroll.ref.current) return
+    const card = dragScroll.ref.current.querySelector(".video-card")
     const step = card ? card.offsetWidth + 24 : 450
-    scroller.current.scrollBy({ left: dir * step, behavior: "smooth" })
+    dragScroll.ref.current.scrollBy({ left: dir * step, behavior: "smooth" })
   }
 
   return (
@@ -361,9 +456,14 @@ const VideoProduction = () => {
         <LetsTalk />
       </div>
 
+      {/* Draggable carousel container */}
       <div
-        ref={scroller}
-        className="no-scrollbar mt-8 sm:mt-10 flex gap-4 sm:gap-6 lg:gap-[60px] overflow-x-auto snap-x snap-mandatory pl-[max(20px,calc((100vw-1440px)/2+20px))]"
+        ref={dragScroll.ref}
+        onMouseDown={dragScroll.onMouseDown}
+        onMouseLeave={dragScroll.onMouseLeave}
+        onMouseUp={dragScroll.onMouseUp}
+        onMouseMove={dragScroll.onMouseMove}
+        className="no-scrollbar mt-8 sm:mt-10 flex gap-4 sm:gap-6 lg:gap-[60px] overflow-x-auto snap-x snap-mandatory pl-[max(20px,calc((100vw-1440px)/2+20px))] cursor-grab active:cursor-grabbing select-none"
       >
         {videoCategories.map(v => (
           <div key={v.label} className="video-card w-[290px] sm:w-[460px] lg:w-[712px] shrink-0 snap-start">
@@ -374,7 +474,8 @@ const VideoProduction = () => {
               <img
                 src={v.img}
                 alt={v.label}
-                className="w-full aspect-video object-cover transition duration-300 group-hover:scale-105"
+                draggable="false"
+                className="w-full aspect-video object-cover transition duration-300 group-hover:scale-105 pointer-events-none"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition">
                 <PlayIcon />
@@ -426,23 +527,35 @@ const PhotoIntro = () => (
 )
 
 /* ================================================================
-   6. PHOTOGRAPHY
+   6. PHOTOGRAPHY  —  Interactive Category + Picture Carousel
    ================================================================ */
 
 const photoCats = ["Beauty", "Food&Drink", "Product", "Events", "Crowdfunding", "Fashion", "People", "Jewellery"]
-const photoImages = {
-  Beauty: photoBeautyLarge,
-  People: photoPeople,
-  Product: photoBeautyLarge,
-  Events: photoPeople,
-  "Food&Drink": photoBeautyLarge,
-  Crowdfunding: photoPeople,
-  Fashion: photoBeautyLarge,
-  Jewellery: photoPeople,
+
+const photoGalleries = {
+  Beauty: [photoBeautyLarge, photoBeauty, vidBeauty],
+  "Food&Drink": [vidFood, photoBeautyLarge, vidProduct],
+  Product: [vidProduct, photoBeautyLarge, vidFood],
+  Events: [photoPeople, vidEvents, photoBeautyLarge],
+  Crowdfunding: [vidCrowdfunding, photoPeople, vidBeauty],
+  Fashion: [photoBeauty, photoBeautyLarge, photoPeople],
+  People: [photoPeople, photoBeauty, vidEvents],
+  Jewellery: [photoBeautyLarge, vidProduct, photoBeauty],
 }
 
 const Photography = () => {
   const [active, setActive] = React.useState("Beauty")
+  const [slideIndex, setSlideIndex] = React.useState(0)
+
+  const slides = photoGalleries[active] || [photoBeautyLarge]
+
+  const nextSlide = () => setSlideIndex(i => (i + 1) % slides.length)
+  const prevSlide = () => setSlideIndex(i => (i - 1 + slides.length) % slides.length)
+
+  const handleCategoryChange = (cat) => {
+    setActive(cat)
+    setSlideIndex(0)
+  }
 
   return (
     <section className="py-14 sm:py-20 lg:py-28 overflow-hidden">
@@ -452,11 +565,12 @@ const Photography = () => {
       </div>
 
       <div className="container-x mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[362px_1fr] items-start">
+        {/* Category list */}
         <ul>
           {photoCats.map(c => (
             <li key={c} className="border-b border-brand-slate/30">
               <button
-                onClick={() => setActive(c)}
+                onClick={() => handleCategoryChange(c)}
                 className={`w-full py-2.5 sm:py-3.5 text-left text-[clamp(18px,2.1vw,40px)] font-extrabold tracking-[-0.05em] transition-colors ${
                   active === c
                     ? "text-brand-yellow"
@@ -469,12 +583,34 @@ const Photography = () => {
           ))}
         </ul>
 
+        {/* Featured Photo Carousel */}
         <div className="lg:mr-[calc((1440px-100vw)/2-40px)]">
-          <img
-            src={photoImages[active] || photoBeautyLarge}
-            alt={`${active} photography`}
-            className="h-[260px] sm:h-[420px] lg:h-[605px] w-full object-cover rounded-lg lg:rounded-l-lg lg:rounded-r-none shadow-md"
-          />
+          <div className="relative overflow-hidden rounded-lg lg:rounded-l-lg lg:rounded-r-none shadow-md group">
+            <img
+              key={`${active}-${slideIndex}`}
+              src={slides[slideIndex]}
+              alt={`${active} photography slide ${slideIndex + 1}`}
+              className="h-[260px] sm:h-[420px] lg:h-[605px] w-full object-cover transition-opacity duration-300"
+            />
+          </div>
+
+          {/* Carousel Navigation: [←] [● ○ ○] [→] */}
+          <div className="mt-4 flex items-center justify-center lg:justify-start gap-4">
+            <ArrowBtn dir="left" onClick={prevSlide} />
+            <div className="flex gap-2">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSlideIndex(i)}
+                  className={`h-3 w-3 rounded-full transition-colors ${
+                    i === slideIndex ? "bg-brand-yellow scale-110" : "bg-gray-300"
+                  }`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
+            </div>
+            <ArrowBtn dir="right" onClick={nextSlide} />
+          </div>
         </div>
       </div>
     </section>
@@ -691,58 +827,70 @@ const GoogleG = () => (
   </svg>
 )
 
-const Reviews = () => (
-  <section className="py-14 sm:py-20 lg:py-28">
-    <div className="container-x grid gap-8 sm:gap-10 lg:grid-cols-[1fr_667px] lg:items-start">
-      <div>
-        <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1.1em] tracking-[-0.05em]">
-          <span className="text-brand-slate">Go behind the scenes of our </span>
-          <a
-            href="https://www.google.com/maps/place/Pocket+Creatives"
-            target="_blank"
-            rel="noreferrer"
-            className="text-brand-blue underline decoration-2 underline-offset-[8px]"
-          >
-            5 Star
-          </a>
-          <span className="text-brand-slate"> Service</span>
-        </h2>
-        <div className="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
-          <GoogleG />
-          <span className="text-[clamp(16px,1.5vw,30px)] font-extrabold tracking-[-0.05em] text-brand-slate">
-            Based on<br />88 reviews
-          </span>
+const Reviews = () => {
+  const reviewsDrag = useDragScroll()
+
+  return (
+    <section className="py-14 sm:py-20 lg:py-28">
+      <div className="container-x grid gap-8 sm:gap-10 lg:grid-cols-[1fr_667px] lg:items-start">
+        <div>
+          <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1.1em] tracking-[-0.05em]">
+            <span className="text-brand-slate">Go behind the scenes of our </span>
+            <a
+              href="https://www.google.com/maps/place/Pocket+Creatives"
+              target="_blank"
+              rel="noreferrer"
+              className="text-brand-blue underline decoration-2 underline-offset-[8px]"
+            >
+              5 Star
+            </a>
+            <span className="text-brand-slate"> Service</span>
+          </h2>
+          <div className="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
+            <GoogleG />
+            <span className="text-[clamp(16px,1.5vw,30px)] font-extrabold tracking-[-0.05em] text-brand-slate">
+              Based on<br />88 reviews
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em] mb-2">
+            *Click on Video to toggle sound
+          </p>
+          <img src={bts} alt="Behind the scenes" className="w-full rounded-[12px] shadow-md" />
         </div>
       </div>
 
-      <div>
-        <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em] mb-2">
-          *Click on Video to toggle sound
-        </p>
-        <img src={bts} alt="Behind the scenes" className="w-full rounded-[12px] shadow-md" />
-      </div>
-    </div>
-
-    <div className="no-scrollbar mt-8 sm:mt-12 flex gap-4 sm:gap-6 overflow-x-auto pl-[max(20px,calc((100vw-1440px)/2+20px))]">
-      {reviews.map(r => (
-        <div key={r.name} className="w-[280px] sm:w-[357px] shrink-0 rounded-[24px] sm:rounded-[32px] bg-[#E6E6E6] p-2.5 sm:p-3 shadow-sm">
-          <div className="h-[190px] sm:h-[226px] overflow-hidden rounded-[18px] sm:rounded-[24px] bg-white p-5 sm:p-7">
-            <p className="text-[15px] sm:text-[18px] font-medium leading-[1.4em] tracking-[-0.05em] text-black">
-              {r.text}
+      {/* Draggable Reviews Carousel matching Figma & prototype video */}
+      <div
+        ref={reviewsDrag.ref}
+        onMouseDown={reviewsDrag.onMouseDown}
+        onMouseLeave={reviewsDrag.onMouseLeave}
+        onMouseUp={reviewsDrag.onMouseUp}
+        onMouseMove={reviewsDrag.onMouseMove}
+        className="no-scrollbar mt-8 sm:mt-12 flex gap-4 sm:gap-6 overflow-x-auto pl-[max(20px,calc((100vw-1440px)/2+20px))] cursor-grab active:cursor-grabbing select-none"
+      >
+        {reviews.map(r => (
+          <div key={r.name} className="w-[280px] sm:w-[357px] shrink-0 rounded-[24px] sm:rounded-[32px] bg-[#E6E6E6] p-2.5 sm:p-3 shadow-sm">
+            <div className="h-[190px] sm:h-[226px] overflow-hidden rounded-[18px] sm:rounded-[24px] bg-white p-5 sm:p-7">
+              <p className="text-[15px] sm:text-[18px] font-medium leading-[1.4em] tracking-[-0.05em] text-black">
+                {r.text}
+              </p>
+            </div>
+            <p className="px-4 sm:px-6 py-3 sm:py-4 text-[16px] sm:text-[20px] font-extrabold tracking-[-0.05em] text-brand-slate">
+              {r.name}
             </p>
           </div>
-          <p className="px-4 sm:px-6 py-3 sm:py-4 text-[16px] sm:text-[20px] font-extrabold tracking-[-0.05em] text-brand-slate">
-            {r.name}
-          </p>
-        </div>
-      ))}
-      <div className="shrink-0 w-8" />
-    </div>
-  </section>
-)
+        ))}
+        <div className="shrink-0 w-8" />
+      </div>
+    </section>
+  )
+}
 
 /* ================================================================
-   10. PRICING
+   10. PRICING  —  Matches HP 1920, HP 1440 & Mobile
    ================================================================ */
 
 const Pricing = () => {
@@ -758,7 +906,7 @@ const Pricing = () => {
         </h2>
         <button
           onClick={() => setIsOpen(true)}
-          className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[clamp(16px,1.5vw,30px)] font-medium text-black hover:brightness-105 transition self-start sm:self-auto"
+          className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[clamp(16px,1.5vw,30px)] font-medium text-black hover:brightness-105 transition self-start sm:self-auto shadow-btn"
           style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
         >
           View Pricing
@@ -769,22 +917,37 @@ const Pricing = () => {
         Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare.
       </p>
 
-      <div className="mt-8 sm:mt-10 grid gap-6 sm:gap-8 lg:grid-cols-[1fr_643px] lg:items-start">
+      <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[1fr_560px] lg:items-center">
         <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.8em] tracking-[-0.05em] text-brand-slate max-w-[701px]">
           {LOREM}
         </p>
-        <button
-          onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center gap-3 sm:gap-4 rounded-[16px] bg-brand-yellow py-3.5 sm:py-4 px-6 sm:px-8 hover:brightness-105 transition text-left"
-          style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
-        >
-          <span className="text-[clamp(36px,5vw,96px)] font-extrabold tracking-[-0.05em] text-white leading-[1em]">
-            Request
-          </span>
-          <span className="text-[clamp(20px,2.5vw,48px)] font-medium tracking-[-0.05em] text-black leading-[0.8em]">
-            a<br />quote
-          </span>
-        </button>
+
+        {/* Pocket Promise + Value Price Badge from HP 1440 & Mobile */}
+        <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-end">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-brand-blue bg-white shadow-sm p-1.5">
+              <img src={logo} alt="Pocket Promise" className="h-6 w-auto object-contain" />
+            </div>
+            <span className="text-xl sm:text-2xl font-medium text-black tracking-tight">
+              Pocket Promise
+            </span>
+          </div>
+
+          <div
+            className="flex items-center justify-center gap-3 rounded-[16px] bg-brand-yellow py-3.5 px-6"
+            style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
+          >
+            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Value
+            </span>
+            <span className="text-xl sm:text-2xl font-medium text-black">
+              Price
+            </span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-brand-blue">
+              ✓
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   )
