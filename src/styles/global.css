@@ -16,8 +16,10 @@
 
 @layer components {
   /*
-   * Main content column — 1440px on desktop, matching the Figma HP 1920 frame
-   * (1920 - 1440) / 2 = 240px margin each side
+   * Main content column
+   * 1920: 1440px centered (240px margins)
+   * 1440: ~1366px (37px margins)
+   * Mobile: full-width with 20px padding
    */
   .container-x {
     @apply mx-auto w-full;
@@ -26,20 +28,67 @@
     padding-right: clamp(20px, 4vw, 40px);
   }
 
+  /* At 1440px viewport, tighter margins matching Figma HP 1440 (x=37) */
+  @media (max-width: 1440px) {
+    .container-x {
+      max-width: 100%;
+      padding-left: 37px;
+      padding-right: 37px;
+    }
+  }
+
+  /* Mobile: 20px padding */
+  @media (max-width: 640px) {
+    .container-x {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+
   .heading-xl {
-    font-size: clamp(48px, 6.25vw, 120px);
+    font-size: clamp(32px, 6.25vw, 120px);
     @apply font-extrabold leading-[1.0] tracking-[-0.05em];
+  }
+
+  /* 1440px breakpoint heading adjustment */
+  @media (max-width: 1440px) {
+    .heading-xl {
+      font-size: clamp(32px, 5.5vw, 90px);
+    }
   }
 
   .blob-btn {
     @apply flex shrink-0 items-center justify-center rounded-[64px] text-center font-extrabold leading-tight transition hover:rotate-0 hover:scale-105;
     box-shadow: 3px 3px 6px 0px rgba(82, 110, 135, 1);
   }
+
+  /* 1920px: 150x150 blob */
   .blob-btn-lg {
     @apply blob-btn h-[150px] w-[150px] text-[30px] -rotate-6;
   }
+
+  /* 1440px: 80x80 blob (matching Figma HP 1440) */
+  @media (max-width: 1440px) {
+    .blob-btn-lg {
+      @apply h-[100px] w-[100px] text-[22px];
+    }
+  }
+
+  /* Mobile: 60x60 blob */
+  @media (max-width: 640px) {
+    .blob-btn-lg {
+      @apply h-[60px] w-[60px] text-[14px];
+    }
+  }
+
   .blob-btn-sm {
     @apply blob-btn h-[80px] w-[80px] text-[20px] -rotate-6;
+  }
+
+  @media (max-width: 640px) {
+    .blob-btn-sm {
+      @apply h-[50px] w-[50px] text-[13px];
+    }
   }
 
   .no-scrollbar::-webkit-scrollbar {

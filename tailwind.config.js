@@ -2,6 +2,13 @@
 module.exports = {
   content: [`./src/**/*.{js,jsx,ts,tsx}`],
   theme: {
+    screens: {
+      sm: "640px",    // Mobile breakpoint
+      md: "768px",    // Tablet
+      lg: "1024px",   // Small desktop
+      xl: "1440px",   // HP 1440 breakpoint
+      "2xl": "1920px", // HP 1920 breakpoint
+    },
     extend: {
       colors: {
         brand: {

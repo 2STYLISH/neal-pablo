@@ -49,6 +49,8 @@ import lauren from "../images/lauren.png"
 // BTS & Reviews
 import bts from "../images/bts.png"
 
+const LOREM = "Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare. In nec lacinia consectetur placerat vestibulum sem odio. In feugiat elit fames eget lobortis turpis scelerisque tincidunt. Enim."
+
 /* ================================================================
    DRAG-TO-SCROLL HOOK
    Enables desktop mouse dragging + touch swiping like Figma
