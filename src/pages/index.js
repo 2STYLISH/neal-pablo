@@ -4,62 +4,170 @@ import Layout from "../components/Layout"
 import logo from "../images/logo.png"
 import heroImg from "../images/hero.png"
 import heroPeople from "../images/hero-people.png"
-import videoBeauty from "../images/video-beauty.png"
-import videoFood from "../images/video-food.png"
-import videoProducts from "../images/video-products.png"
-import videoEvents from "../images/video-events.png"
-import photoBeauty from "../images/photo-beauty.png"
+import downArrow from "../images/down-arrow.svg"
+
+// Partner logos — Page 1
+import logoStudio from "../images/logo-studio.png"
+import logoNursem from "../images/logo-nursem.png"
+import logoColmans from "../images/logo-colmans.png"
+import logoRightmove from "../images/logo-rightmove.png"
+import logoQvc from "../images/logo-qvc.png"
+import logoMasabi from "../images/logo-masabi.png"
+import logoVidaGlow from "../images/logo-vidaglow.png"
+import logoPrestigeFlowers from "../images/logo-prestigeflowers.png"
+import logoSaputo from "../images/logo-saputo.png"
+
+// Partner logos — Page 2
+import logoArgos from "../images/logo-argos.png"
+import logoSoapGlory from "../images/logo-soapglory.png"
+import logoMacmillan from "../images/logo-macmillan.png"
+import logoKopparberg from "../images/logo-kopparberg.png"
+import logoLadbrokes from "../images/logo-ladbrokes.png"
+import logoCoop from "../images/logo-coop.png"
+import logoBusinessInsider from "../images/logo-businessinsider.png"
+import logoGymGroup from "../images/logo-gymgroup.png"
+import logoTelegraph from "../images/logo-telegraph.png"
+
+// Video Thumbnails
+import vidBeauty from "../images/vid-beauty.png"
+import vidFood from "../images/vid-food.png"
+import vidProduct from "../images/vid-product.png"
+import vidEvents from "../images/vid-events.png"
+import vidCrowdfunding from "../images/vid-crowdfunding.png"
+import vidTv from "../images/vid-tv.png"
+
+// Photography
+import photoBeautyLarge from "../images/photo-beauty-large.png"
 import photoPeople from "../images/photo-people.png"
+
+// Team
 import steven from "../images/steven.png"
+import haider from "../images/haider.png"
+import lauren from "../images/lauren.png"
+
+// BTS & Reviews
 import bts from "../images/bts.png"
-import argos from "../images/logo-argos.png"
-import soapglory from "../images/logo-soapglory.png"
-import macmillan from "../images/logo-macmillan.png"
-import kopparberg from "../images/logo-kopparberg.png"
-import ladbrokes from "../images/logo-ladbrokes.png"
-import coop from "../images/logo-coop.png"
-import businessinsider from "../images/logo-businessinsider.png"
-import gymgroup from "../images/logo-gymgroup.png"
-import telegraph from "../images/logo-telegraph.png"
 
 const LOREM =
   "Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare. In nec lacinia consectetur placerat vestibulum sem odio. In feugiat elit fames eget lobortis turpis scelerisque tincidunt. Enim."
 
-/* ---------- Shared UI Elements ---------- */
+/* ================================================================
+   CONTACT MODAL  —  "Have a project you want to discuss?"
+   ================================================================ */
 
-const LetsTalk = ({ className = "" }) => (
-  <a href="#contact" className={`blob-btn bg-brand-blue text-white ${className}`}>
-    <span>
-      Let's
-      <br />
-      Talk
-    </span>
-  </a>
-)
+export const ModalContext = React.createContext({ isOpen: false, setIsOpen: () => {} })
+
+const ContactModal = () => {
+  const { isOpen, setIsOpen } = React.useContext(ModalContext)
+
+  React.useEffect(() => {
+    if (!isOpen) return
+    const handler = e => { if (e.key === "Escape") setIsOpen(false) }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [isOpen, setIsOpen])
+
+  if (!isOpen) return null
+
+  return (
+    <div
+      className="modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
+      onClick={() => setIsOpen(false)}
+    >
+      <div
+        className="modal-card relative w-full max-w-[520px] rounded-[24px] bg-brand-blue p-6 sm:p-10 shadow-2xl my-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          onClick={() => setIsOpen(false)}
+          className="absolute top-4 right-5 sm:top-5 sm:right-6 text-2xl font-bold text-white/80 hover:text-white transition"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+        <h3 className="text-2xl sm:text-[32px] font-extrabold text-white leading-tight mb-4 sm:mb-6 tracking-[-0.04em]">
+          Have a project you<br />want to discuss?
+        </h3>
+        <p className="text-[12px] sm:text-[13px] text-white/85 mb-5 sm:mb-6 leading-relaxed">
+          {LOREM.slice(0, 110)}.
+        </p>
+        <form className="space-y-3.5 sm:space-y-4" onSubmit={e => e.preventDefault()}>
+          <input
+            type="text"
+            placeholder="Full Name*"
+            required
+            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-brand-yellow"
+          />
+          <input
+            type="tel"
+            placeholder="Contact Number*"
+            required
+            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-brand-yellow"
+          />
+          <input
+            type="email"
+            placeholder="Email Address*"
+            required
+            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-brand-yellow"
+          />
+          <textarea
+            placeholder="Message"
+            rows={3}
+            className="w-full rounded-[12px] bg-white px-4 py-2.5 sm:py-3 text-[14px] sm:text-[15px] text-black placeholder:text-gray-400 outline-none resize-none focus:ring-2 focus:ring-brand-yellow"
+          />
+          <button
+            type="submit"
+            className="w-full rounded-[12px] bg-brand-yellow py-3 sm:py-3.5 text-[16px] sm:text-[18px] font-extrabold text-black hover:brightness-105 transition shadow-md"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+/* ================================================================
+   SHARED COMPONENTS
+   ================================================================ */
+
+const LetsTalk = ({ className = "" }) => {
+  const { setIsOpen } = React.useContext(ModalContext)
+  return (
+    <button
+      onClick={() => setIsOpen(true)}
+      className={`blob-btn blob-btn-lg bg-brand-blue text-white/90 ${className}`}
+    >
+      Let's<br />Talk
+    </button>
+  )
+}
 
 const SectionLabel = ({ icon, children }) => (
-  <div className="flex items-center gap-3 sm:gap-4 text-xl sm:text-2xl md:text-3xl font-semibold text-brand-slate">
+  <div className="flex items-center gap-3 sm:gap-4">
     {icon}
-    <span>{children}</span>
+    <span className="text-[clamp(20px,2.1vw,40px)] font-medium text-brand-slate tracking-[-0.05em]">
+      {children}
+    </span>
   </div>
 )
 
 const PlayIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-7 w-7 sm:h-9 sm:w-9 text-brand-blue" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg viewBox="0 0 24 24" className="h-[36px] w-[36px] sm:h-[48px] sm:w-[48px] lg:h-[60px] lg:w-[60px] text-brand-blue shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5">
     <circle cx="12" cy="12" r="10" />
     <path d="M10 8l6 4-6 4V8z" fill="currentColor" />
   </svg>
 )
 
 const ApertureIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-7 w-7 sm:h-9 sm:w-9 text-brand-blue" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg viewBox="0 0 24 24" className="h-[36px] w-[36px] sm:h-[48px] sm:w-[48px] lg:h-[60px] lg:w-[60px] text-brand-blue shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5">
     <circle cx="12" cy="12" r="10" />
     <path d="M14.3 8l5.7 9.9M9.7 8h11.5M7.4 12l5.7-9.9M9.7 16L4 6.1M14.3 16H2.8M16.6 12l-5.7 9.9" />
   </svg>
 )
 
 const CheckMark = () => (
-  <svg viewBox="0 0 24 24" className="inline-block h-[0.7em] w-[0.7em] ml-2 sm:ml-3 align-middle" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round">
+  <svg viewBox="0 0 24 24" className="inline-block h-[0.55em] w-[0.55em] ml-2 sm:ml-3 align-middle" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round">
     <path d="M3 13l6 6L21 5" />
   </svg>
 )
@@ -68,7 +176,7 @@ const ArrowBtn = ({ dir, onClick }) => (
   <button
     onClick={onClick}
     aria-label={dir === "left" ? "Previous" : "Next"}
-    className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-brand-yellow text-black hover:brightness-95 transition shadow-sm"
+    className="flex h-[32px] w-[32px] items-center justify-center rounded-[16px] bg-brand-yellow text-black hover:brightness-105 transition shrink-0"
   >
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3">
       {dir === "left" ? <path d="M19 12H5m6-6l-6 6 6 6" /> : <path d="M5 12h14m-6-6l6 6-6 6" />}
@@ -76,179 +184,240 @@ const ArrowBtn = ({ dir, onClick }) => (
   </button>
 )
 
-/* ---------- 1. Hero Section ---------- */
+/* ================================================================
+   1. HERO
+   ================================================================ */
 
 const Hero = () => (
-  <section className="container-x pt-6 sm:pt-10 md:pt-14">
-    <div className="flex items-end justify-between border-b border-brand-slate/30 pb-4">
-      <img src={logo} alt="Pocket Creatives" className="h-10 sm:h-14 md:h-16 object-contain" />
-      <img src={heroPeople} alt="Photographer and videographer" className="hidden sm:block h-16 sm:h-24 md:h-28 object-contain" />
+  <section className="container-x pt-6 sm:pt-8 lg:pt-12">
+    <div className="flex items-end justify-between">
+      <img src={logo} alt="Pocket Creatives" className="h-[44px] sm:h-[70px] lg:h-[102px] w-auto object-contain" />
+      <div className="hidden sm:flex gap-4">
+        <img src={heroPeople} alt="Photographer and videographer" className="h-[80px] sm:h-[110px] lg:h-[149px] object-cover rounded" />
+      </div>
     </div>
+    <hr className="mt-3 border-brand-slate/40" />
 
-    <h1 className="mt-6 sm:mt-8 text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-normal leading-[1.35] tracking-tight max-w-5xl">
-      We're a <b className="text-brand-yellow font-bold">fast</b> &amp;{" "}
-      <b className="text-brand-yellow font-bold">friendly</b>{" "}
-      <b className="text-brand-blue font-bold">Video Production</b> and{" "}
-      <b className="text-brand-blue font-bold">Photography</b> company
-      <br className="hidden md:block" /> with{" "}
-      <b className="text-brand-yellow font-bold">bags of experience</b> &amp; who{" "}
-      <span className="text-brand-red">❤</span> what we do :)
+    <h1 className="mt-4 text-[clamp(18px,2.5vw,48px)] font-medium leading-[1.5em] lg:leading-[2em] tracking-[-0.05em] text-black">
+      We’re a <b className="font-bold text-brand-yellow">fast</b> &amp;{" "}
+      <b className="font-extrabold text-brand-yellow">friendly</b>{" "}
+      <b className="font-bold text-brand-blue">Video Production</b> and{" "}
+      <b className="font-bold text-brand-blue">Photography</b>{" "}
+      <span className="font-normal text-brand-slate">company with</span>{" "}
+      <b className="font-bold text-brand-yellow">bags of experience</b> &amp;{" "}
+      <span className="font-normal text-brand-slate">who</span>{" "}
+      <span className="text-[#FF1E00]">♥</span>{" "}
+      <span className="font-normal text-brand-slate">what we do :)</span>
     </h1>
 
-    <div className="mt-8 sm:mt-12">
-      <p className="text-xs sm:text-sm text-brand-slate/70 mb-2 font-medium">*Click on Video to toggle sound</p>
-      <div className="relative overflow-hidden rounded-2xl shadow-xl bg-black">
-        <img
-          src={heroImg}
-          alt="Pocket Creatives showreel"
-          className="w-full max-h-[700px] object-cover hover:scale-[1.01] transition-transform duration-500"
-        />
-      </div>
+    <p className="mt-6 text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em]">
+      *Click on Video to toggle sound
+    </p>
+    <div className="mt-2 relative overflow-hidden rounded-[12px] bg-black group cursor-pointer shadow-lg">
+      <img
+        src={heroImg}
+        alt="Pocket Creatives showreel"
+        className="w-full object-cover transition duration-300 group-hover:scale-[1.01]"
+      />
     </div>
   </section>
 )
 
-/* ---------- 2. Partners Section ---------- */
+/* ================================================================
+   2. PARTNERS
+   ================================================================ */
 
-const partners = [
-  [argos, "Argos"], [soapglory, "Soap & Glory"], [macmillan, "Macmillan Cancer Support"],
-  [kopparberg, "Kopparberg"], [ladbrokes, "Ladbrokes"], [coop, "Co-op"],
-  [businessinsider, "Business Insider"], [gymgroup, "The Gym Group"], [telegraph, "The Telegraph"],
+const partnersPage1 = [
+  [logoStudio, "Studio"],
+  [logoNursem, "Nursem"],
+  [logoColmans, "Colman's"],
+  [logoRightmove, "Rightmove"],
+  [logoQvc, "QVC"],
+  [logoMasabi, "Masabi"],
+  [logoVidaGlow, "Vida Glow"],
+  [logoPrestigeFlowers, "Prestige Flowers"],
+  [logoSaputo, "Saputo"],
 ]
 
-const Partners = () => (
-  <section className="container-x py-16 sm:py-24 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
-    <div className="max-w-2xl">
-      <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal leading-snug tracking-tight">
-        As you can see, we've <b className="text-brand-yellow font-bold">partnered</b>
-        <br />
-        with a lot of amazing people
-      </h2>
-      <p className="mt-3 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-brand-blue">
-        in many different Industries:
-      </p>
-      <p className="mt-4 text-sm sm:text-base leading-relaxed text-brand-slate max-w-xl">{LOREM}</p>
-    </div>
-
-    <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-5 w-full lg:w-[480px]">
-      {partners.map(([src, alt]) => (
-        <div
-          key={alt}
-          className="flex h-16 sm:h-20 md:h-24 items-center justify-center rounded-xl bg-white shadow-btn p-3 transition hover:shadow-md hover:-translate-y-0.5"
-        >
-          <img src={src} alt={alt} className="max-h-10 sm:max-h-12 max-w-[85%] object-contain" />
-        </div>
-      ))}
-    </div>
-  </section>
-)
-
-/* ---------- 3. Video Intro Banner ---------- */
-
-const DownChevron = () => (
-  <svg viewBox="0 0 120 64" className="w-20 sm:w-28 text-white hover:translate-y-2 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 6l54 52 54-52" />
-  </svg>
-)
-
-const VideoIntro = () => (
-  <section id="works" className="bg-brand-yellow">
-    <div className="container-x py-20 sm:py-32 md:py-40">
-      <div className="max-w-4xl">
-        <h2 className="heading-xl text-white">
-          Take a look at some
-          <br />
-          of our video work...
-        </h2>
-        <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
-          <p className="text-sm sm:text-base leading-relaxed font-medium text-black max-w-lg">{LOREM}</p>
-          <a href="#video-production" aria-label="Scroll to videos" className="self-start sm:self-center">
-            <DownChevron />
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-)
-
-/* ---------- 4. Video Production Carousel ---------- */
-
-const videos = [
-  { title: "Beauty", img: videoBeauty },
-  { title: "Food&Drink", img: videoFood },
-  { title: "Products", img: videoProducts },
-  { title: "Events", img: videoEvents },
-  { title: "Fashion", img: null },
+const partnersPage2 = [
+  [logoArgos, "Argos"],
+  [logoSoapGlory, "Soap & Glory"],
+  [logoMacmillan, "Macmillan Cancer Support"],
+  [logoKopparberg, "Kopparberg"],
+  [logoLadbrokes, "Ladbrokes"],
+  [logoCoop, "Co-op"],
+  [logoBusinessInsider, "Business Insider"],
+  [logoGymGroup, "The Gym Group"],
+  [logoTelegraph, "The Telegraph"],
 ]
 
-const VideoProduction = () => {
-  const scroller = React.useRef(null)
-  const scroll = dir => {
-    if (scroller.current) {
-      const cardWidth = scroller.current.querySelector(".video-card")?.offsetWidth || 400
-      scroller.current.scrollBy({ left: dir * (cardWidth + 24), behavior: "smooth" })
-    }
-  }
+const partnerPages = [partnersPage1, partnersPage2]
+
+const Partners = () => {
+  const [page, setPage] = React.useState(0)
 
   return (
-    <section id="video-production" className="py-16 sm:py-24">
-      <div className="container-x flex items-center justify-between mb-8">
-        <SectionLabel icon={<PlayIcon />}>Video Production</SectionLabel>
-        <LetsTalk className="-mt-4" />
+    <section className="container-x py-14 sm:py-20 lg:py-24 grid gap-8 lg:grid-cols-[1fr_640px] lg:items-start">
+      <div>
+        <h2 className="text-[clamp(22px,2.1vw,40px)] font-medium leading-[1.35em] tracking-[-0.05em] text-brand-slate">
+          As you can see, we’ve <b className="font-black text-brand-yellow">partnered</b> with a lot of amazing people
+        </h2>
+        <p className="mt-3 sm:mt-4 text-[clamp(22px,2.1vw,40px)] font-extrabold tracking-[-0.05em] text-brand-blue">
+          in many different Industries:
+        </p>
+        <p className="mt-4 sm:mt-6 text-[clamp(14px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[632px]">
+          {LOREM}
+        </p>
       </div>
 
-      <div
-        ref={scroller}
-        className="no-scrollbar flex gap-6 sm:gap-8 overflow-x-auto snap-x snap-mandatory px-4 sm:px-8 md:px-12 lg:px-16"
-      >
-        {videos.map((v, i) => (
-          <div
-            key={v.title}
-            className="video-card w-[280px] sm:w-[380px] md:w-[460px] lg:w-[500px] shrink-0 snap-start"
-          >
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-black mb-3">
-              {v.title}
-            </h3>
-            {v.img ? (
-              <img
-                src={v.img}
-                alt={`${v.title} video`}
-                className="aspect-video w-full rounded-2xl object-cover shadow-md hover:shadow-lg transition-shadow"
+      <div>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          {partnerPages[page].map(([src, alt]) => (
+            <div
+              key={alt}
+              className="flex h-[68px] sm:h-[90px] lg:h-[100px] items-center justify-center rounded-[12px] sm:rounded-[16px] bg-white p-2 sm:p-3 transition hover:shadow-md"
+              style={{ boxShadow: "0px 4px 4px 0px rgba(0,0,0,0.12)" }}
+            >
+              <img src={src} alt={alt} className="max-h-[50px] sm:max-h-[70px] max-w-[88%] object-contain" />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-center gap-4">
+          <ArrowBtn dir="left" onClick={() => setPage(p => (p - 1 + partnerPages.length) % partnerPages.length)} />
+          <div className="flex gap-2">
+            {partnerPages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i)}
+                className={`h-3 w-3 rounded-full transition-colors ${i === page ? "bg-brand-yellow" : "bg-gray-300"}`}
+                aria-label={`Page ${i + 1}`}
               />
-            ) : (
-              <div className="aspect-video w-full rounded-2xl bg-slate-300 flex items-center justify-center text-slate-600 font-semibold">
-                {v.title}
-              </div>
-            )}
-            {i === 0 && (
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-brand-slate/80 font-medium">*Drag to play the next Video, Click to toggle sound</p>
-                <div className="flex gap-2">
-                  <ArrowBtn dir="left" onClick={() => scroll(-1)} />
-                  <ArrowBtn dir="right" onClick={() => scroll(1)} />
-                </div>
-              </div>
-            )}
+            ))}
           </div>
-        ))}
+          <ArrowBtn dir="right" onClick={() => setPage(p => (p + 1) % partnerPages.length)} />
+        </div>
       </div>
     </section>
   )
 }
 
-/* ---------- 5. Photography Intro Banner ---------- */
+/* ================================================================
+   3. YELLOW VIDEO INTRO
+   ================================================================ */
+
+const VideoIntro = () => (
+  <section id="works" className="bg-brand-yellow text-white">
+    <div className="container-x py-16 sm:py-24 lg:py-36 relative">
+      <h2 className="heading-xl max-w-[1090px]">
+        Take a look at some of our video work...
+      </h2>
+      <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[610px_1fr] items-end">
+        <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
+          {LOREM}
+        </p>
+        <div className="flex justify-start lg:justify-end lg:pr-12">
+          <img
+            src={downArrow}
+            alt="Scroll down"
+            className="w-[80px] sm:w-[120px] lg:w-[180px] h-auto animate-bounce opacity-95"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+)
+
+/* ================================================================
+   4. VIDEO PRODUCTION
+   ================================================================ */
+
+const videoCategories = [
+  { label: "Beauty", img: vidBeauty },
+  { label: "Food&Drink", img: vidFood },
+  { label: "Product", img: vidProduct },
+  { label: "Events", img: vidEvents },
+  { label: "Crowdfunding", img: vidCrowdfunding },
+  { label: "Tv Ads", img: vidTv },
+  { label: "HR", img: vidBeauty },
+  { label: "Education", img: vidFood },
+  { label: "Explainers", img: vidProduct },
+  { label: "Social First", img: vidEvents },
+]
+
+const VideoProduction = () => {
+  const scroller = React.useRef(null)
+  const scroll = dir => {
+    if (!scroller.current) return
+    const card = scroller.current.querySelector(".video-card")
+    const step = card ? card.offsetWidth + 24 : 450
+    scroller.current.scrollBy({ left: dir * step, behavior: "smooth" })
+  }
+
+  return (
+    <section id="video-production" className="py-14 sm:py-20 lg:py-28">
+      <div className="container-x flex items-center justify-between">
+        <SectionLabel icon={<PlayIcon />}>Video Production</SectionLabel>
+        <LetsTalk />
+      </div>
+
+      <div
+        ref={scroller}
+        className="no-scrollbar mt-8 sm:mt-10 flex gap-4 sm:gap-6 lg:gap-[60px] overflow-x-auto snap-x snap-mandatory pl-[max(20px,calc((100vw-1440px)/2+20px))]"
+      >
+        {videoCategories.map(v => (
+          <div key={v.label} className="video-card w-[290px] sm:w-[460px] lg:w-[712px] shrink-0 snap-start">
+            <h3 className="text-[clamp(26px,4.2vw,80px)] font-extrabold tracking-[-0.05em] text-black mb-2 sm:mb-4">
+              {v.label}
+            </h3>
+            <div className="relative group overflow-hidden rounded-[12px] bg-black">
+              <img
+                src={v.img}
+                alt={v.label}
+                className="w-full aspect-video object-cover transition duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition">
+                <PlayIcon />
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <div className="shrink-0 snap-start flex items-end pb-8 sm:pb-16 lg:pb-[140px] pr-8">
+          <button className="text-[clamp(44px,6.25vw,120px)] font-extrabold tracking-[-0.05em] leading-[1.1em] underline text-black hover:text-brand-blue transition-colors text-left">
+            View<br />All.
+          </button>
+        </div>
+      </div>
+
+      <div className="container-x mt-6">
+        <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em]">
+          *Drag to play the next Video, Click to toggle sound
+        </p>
+        <div className="mt-3 flex gap-3">
+          <ArrowBtn dir="left" onClick={() => scroll(-1)} />
+          <ArrowBtn dir="right" onClick={() => scroll(1)} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================
+   5. CYAN PHOTO INTRO
+   ================================================================ */
 
 const PhotoIntro = () => (
-  <section className="bg-brand-blue">
-    <div className="container-x py-20 sm:py-32 md:py-40">
-      <h2 className="heading-xl text-white">
-        We <span className="text-brand-yellow">squeeze</span> quality into
-        <br className="hidden sm:block" />
-        every pixel...
+  <section className="bg-brand-blue text-white">
+    <div className="container-x py-16 sm:py-24 lg:py-36">
+      <h2 className="heading-xl max-w-[1440px]">
+        We <span className="text-brand-yellow tracking-[-0.15em]">squeeze</span> quality into every pixel...
       </h2>
-      <div className="mt-10 sm:mt-14 grid gap-6 sm:gap-10 md:grid-cols-2 max-w-4xl">
-        <p className="text-sm sm:text-base leading-relaxed font-medium text-white/90">{LOREM}</p>
-        <p className="text-lg sm:text-xl font-bold leading-snug tracking-tight text-white">
+      <div className="mt-8 sm:mt-12 grid gap-6 sm:gap-8 lg:grid-cols-[610px_1fr]">
+        <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
+          {LOREM}
+        </p>
+        <p className="text-[clamp(20px,2.1vw,40px)] font-extrabold leading-[1.15em] tracking-[-0.05em] text-white">
           See some of our Photography work for different industries below.
         </p>
       </div>
@@ -256,66 +425,70 @@ const PhotoIntro = () => (
   </section>
 )
 
-/* ---------- 6. Photography Showcase ---------- */
+/* ================================================================
+   6. PHOTOGRAPHY
+   ================================================================ */
 
-const photoCats = ["Beauty", "Food & Drink", "Product", "Events", "Crowdfunding", "Fashion", "People", "Jewellery"]
-const photoImages = { Beauty: photoBeauty, People: photoPeople }
+const photoCats = ["Beauty", "Food&Drink", "Product", "Events", "Crowdfunding", "Fashion", "People", "Jewellery"]
+const photoImages = {
+  Beauty: photoBeautyLarge,
+  People: photoPeople,
+  Product: photoBeautyLarge,
+  Events: photoPeople,
+  "Food&Drink": photoBeautyLarge,
+  Crowdfunding: photoPeople,
+  Fashion: photoBeautyLarge,
+  Jewellery: photoPeople,
+}
 
 const Photography = () => {
   const [active, setActive] = React.useState("Beauty")
+
   return (
-    <section className="py-16 sm:py-24 overflow-hidden">
-      <div className="container-x flex items-center justify-between mb-8 sm:mb-12">
+    <section className="py-14 sm:py-20 lg:py-28 overflow-hidden">
+      <div className="container-x flex items-center justify-between">
         <SectionLabel icon={<ApertureIcon />}>Photography</SectionLabel>
-        <LetsTalk className="-mt-4" />
+        <LetsTalk />
       </div>
 
-      <div className="container-x grid gap-8 lg:grid-cols-[280px_1fr] items-start">
-        {/* Category tabs */}
-        <div className="flex lg:flex-col gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
-          {photoCats.map(c => {
-            const isSelected = active === c
-            return (
+      <div className="container-x mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[362px_1fr] items-start">
+        <ul>
+          {photoCats.map(c => (
+            <li key={c} className="border-b border-brand-slate/30">
               <button
-                key={c}
                 onClick={() => setActive(c)}
-                className={`py-2 px-3 text-left text-lg sm:text-xl md:text-2xl font-bold tracking-tight rounded-lg transition-all border-b lg:border-b-2 ${
-                  isSelected
-                    ? "text-brand-yellow border-brand-yellow bg-yellow-50/50"
-                    : "text-brand-slate border-brand-slate/20 hover:text-brand-blue hover:border-brand-blue"
+                className={`w-full py-2.5 sm:py-3.5 text-left text-[clamp(18px,2.1vw,40px)] font-extrabold tracking-[-0.05em] transition-colors ${
+                  active === c
+                    ? "text-brand-yellow"
+                    : "text-brand-slate hover:text-brand-blue"
                 }`}
               >
-                {isSelected ? `View ${c}` : c}
+                {active === c ? `View ${c}` : c}
               </button>
-            )
-          })}
-        </div>
+            </li>
+          ))}
+        </ul>
 
-        {/* Category Image */}
-        <div className="w-full">
-          {photoImages[active] ? (
-            <img
-              src={photoImages[active]}
-              alt={`${active} photography`}
-              className="h-[360px] sm:h-[480px] md:h-[580px] w-full rounded-2xl object-cover shadow-lg"
-            />
-          ) : (
-            <div className="flex h-[360px] sm:h-[480px] md:h-[580px] w-full items-center justify-center rounded-2xl bg-slate-200 text-slate-500 font-semibold text-xl">
-              {active} photography
-            </div>
-          )}
+        <div className="lg:mr-[calc((1440px-100vw)/2-40px)]">
+          <img
+            src={photoImages[active] || photoBeautyLarge}
+            alt={`${active} photography`}
+            className="h-[260px] sm:h-[420px] lg:h-[605px] w-full object-cover rounded-lg lg:rounded-l-lg lg:rounded-r-none shadow-md"
+          />
         </div>
       </div>
     </section>
   )
 }
 
-/* ---------- 7. Services & Quality - Check ---------- */
+/* ================================================================
+   7. SERVICES
+   ================================================================ */
 
 const values = [
   {
     title: "Proactive",
-    text: "We pride ourselves on our quality of service above everything else. We've taken the time to build a cracking little team at Pocket, and we make sure that you feel the benefits of working with a dedicated video production company who are there for you, and dedicated to the success of your project.",
+    text: "We pride ourselves on our quality of service above everything else. We’ve taken the time to build a cracking little team at Pocket, and we make sure that you feel the benefits of working with a dedicated video production company who are there for you, and dedicated to the success of your project.",
   },
   {
     title: "Nerds for Visuals",
@@ -327,122 +500,164 @@ const values = [
   },
 ]
 
-const Services = () => (
-  <section id="services" className="bg-brand-yellow">
-    <div className="container-x py-16 sm:py-24">
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-none tracking-tight text-white">
-          {["Services", "Quality", "People"].map(w => (
-            <span key={w} className="block mb-2">
-              {w} - <span className="text-brand-blue">Check<CheckMark /></span>
-            </span>
+const Services = () => {
+  const { setIsOpen } = React.useContext(ModalContext)
+
+  return (
+    <section id="services" className="bg-brand-yellow">
+      <div className="container-x py-16 sm:py-24 lg:py-32">
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1.05em] tracking-[-0.05em] text-white">
+            {["Services", "Quality", "People"].map(w => (
+              <span key={w} className="block mb-1 sm:mb-2">
+                {w} - <span className="text-brand-blue">Check<CheckMark /></span>
+              </span>
+            ))}
+          </h2>
+          <button
+            onClick={() => setIsOpen(true)}
+            className="blob-btn blob-btn-lg bg-white text-brand-blue"
+          >
+            Say<br />Hello
+          </button>
+        </div>
+
+        <div className="mt-12 sm:mt-16 grid gap-8 lg:grid-cols-3 text-black">
+          {values.map(v => (
+            <div key={v.title}>
+              <h3 className="text-[clamp(18px,1.5vw,30px)] font-medium mb-3 sm:mb-4 tracking-[-0.05em]">{v.title}</h3>
+              <p className="text-[clamp(13px,1vw,20px)] leading-[1.4em] tracking-[-0.05em] text-black/90">{v.text}</p>
+            </div>
           ))}
-        </h2>
-        <a href="#contact" className="blob-btn bg-white text-brand-blue">
-          <span>
-            Say
-            <br />
-            Hello
-          </span>
-        </a>
+        </div>
       </div>
+    </section>
+  )
+}
 
-      <div className="mt-12 sm:mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 text-black">
-        {values.map(v => (
-          <div key={v.title} className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <h3 className="text-xl sm:text-2xl font-bold mb-3">{v.title}</h3>
-            <p className="text-xs sm:text-sm leading-relaxed font-medium">{v.text}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-)
+/* ================================================================
+   8. TEAM
+   ================================================================ */
 
-/* ---------- 8. Meet the Team ---------- */
-
-const team = [
+const teamMembers = [
   {
     first: "Steven",
     last: "Mayatt",
     img: steven,
     roles: ["Managing Director", "Creative Director", "Photographer", "Entrepreneur", "Marketeer", "Coffee Drinker"],
+    nameColor: "text-brand-yellow",
+    lastColor: "text-brand-blue",
+    rolesColor: "text-brand-slate",
   },
-  { first: "Haider" },
-  { first: "Lauren" },
-  { first: "Ned" },
-  { first: "Connor" },
-  { first: "Rauchan" },
+  {
+    first: "Haider",
+    last: "Romero Perez",
+    img: haider,
+    roles: ["Technical Director", "Cinematographer", "Cameraman", "Editor", "Colourist", "Intrepid Cyclist"],
+    nameColor: "text-brand-yellow",
+    lastColor: "text-brand-blue",
+    rolesColor: "text-black",
+  },
+  {
+    first: "Lauren",
+    last: "Hodge",
+    img: lauren,
+    roles: ["Production Director", "Organiser", "Planner", "Emergency Hand model", "Prop Shopper", "Recipe Wrangler"],
+    nameColor: "text-brand-yellow",
+    lastColor: "text-brand-blue",
+    rolesColor: "text-black",
+  },
+  { first: "Ned", last: "", img: steven, roles: ["Team Member"], nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
+  { first: "Connor", last: "", img: haider, roles: ["Team Member"], nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
+  { first: "Rauchan", last: "", img: lauren, roles: ["Team Member"], nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
 ]
 
 const Team = () => {
-  const [selected, setSelected] = React.useState(0)
-  const m = team[selected]
+  const [sel, setSel] = React.useState(0)
+  const m = teamMembers[sel]
+  const { setIsOpen } = React.useContext(ModalContext)
 
   return (
-    <section id="about" className="container-x py-16 sm:py-24">
-      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8">Meet the Team</h2>
+    <section id="about" className="container-x py-14 sm:py-20 lg:py-28">
+      <h2 className="text-[clamp(22px,2.1vw,40px)] font-extrabold tracking-[-0.05em] text-brand-slate mb-6 sm:mb-8">
+        Meet the Team
+      </h2>
 
-      <div className="grid gap-10 lg:grid-cols-[400px_1fr] items-start">
-        {/* Team Photo */}
+      <div className="grid gap-8 lg:grid-cols-[550px_1fr] items-start">
         <div>
-          {m.img ? (
-            <img
-              src={m.img}
-              alt={`${m.first} ${m.last || ""}`}
-              className="w-full max-h-[520px] rounded-2xl object-cover shadow-lg"
-            />
-          ) : (
-            <div className="flex h-[400px] w-full items-center justify-center rounded-2xl bg-slate-200 text-slate-500 font-semibold text-2xl">
-              {m.first}
-            </div>
-          )}
+          <img
+            src={m.img}
+            alt={`${m.first} ${m.last}`}
+            className="w-full h-[320px] sm:h-[480px] lg:h-[640px] rounded-[16px] object-cover shadow-md"
+          />
         </div>
 
-        {/* Member Details */}
         <div>
-          {/* Member selector tabs */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {team.map((t, i) => (
-              <button
-                key={t.first}
-                onClick={() => setSelected(i)}
-                className={`rounded-full px-4 py-1.5 text-xs sm:text-sm font-semibold transition ${
-                  i === selected
-                    ? "bg-brand-yellow text-black shadow-sm"
-                    : "bg-white text-brand-slate hover:text-black border border-brand-slate/20"
-                }`}
-              >
-                {t.first}
-              </button>
+          <div className="mb-6 sm:mb-8 space-y-2">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {teamMembers.slice(0, 3).map((t, i) => (
+                <button
+                  key={t.first}
+                  onClick={() => setSel(i)}
+                  className={`rounded-[12px] px-3.5 sm:px-5 py-1.5 sm:py-2 text-[clamp(13px,1vw,20px)] font-medium tracking-[-0.05em] min-w-[80px] sm:min-w-[103px] transition-colors ${
+                    i === sel
+                      ? "bg-brand-yellow text-white font-bold"
+                      : "text-brand-slate hover:bg-gray-200"
+                  }`}
+                >
+                  {t.first}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {teamMembers.slice(3).map((t, i) => (
+                <button
+                  key={t.first}
+                  onClick={() => setSel(i + 3)}
+                  className={`rounded-[12px] px-3.5 sm:px-5 py-1.5 sm:py-2 text-[clamp(13px,1vw,20px)] font-medium tracking-[-0.05em] min-w-[80px] sm:min-w-[103px] transition-colors ${
+                    i + 3 === sel
+                      ? "bg-brand-yellow text-white font-bold"
+                      : "text-brand-slate hover:bg-gray-200"
+                  }`}
+                >
+                  {t.first}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <h3 className={`text-[clamp(32px,4.2vw,80px)] font-extrabold tracking-[-0.05em] ${m.nameColor} leading-[1.05em]`}>
+            {m.first}{" "}
+            <span className={`text-[clamp(20px,2.1vw,40px)] ${m.lastColor}`}>{m.last}</span>
+          </h3>
+
+          <div className="mt-4 sm:mt-5 flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-1.5 sm:gap-y-2">
+            {m.roles.map(r => (
+              <span key={r} className={`text-[clamp(13px,1vw,20px)] font-extrabold ${m.rolesColor} tracking-[-0.05em]`}>
+                {r}
+              </span>
             ))}
           </div>
 
-          <h3 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-brand-yellow">
-            {m.first} <span className="text-2xl sm:text-3xl text-brand-blue font-bold">{m.last || ""}</span>
-          </h3>
+          <p className="mt-6 sm:mt-8 text-[clamp(13px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[579px]">
+            {LOREM}
+          </p>
 
-          <ul className="mt-4 flex flex-wrap gap-2 text-xs sm:text-sm font-bold text-black">
-            {(m.roles || ["Team Member"]).map(r => (
-              <li key={r} className="bg-slate-200/70 px-3 py-1 rounded-md">
-                {r}
-              </li>
-            ))}
-          </ul>
-
-          <p className="mt-6 text-sm sm:text-base leading-relaxed text-brand-slate max-w-xl">{LOREM}</p>
-
-          <div className="mt-8 flex items-center gap-6">
-            <a
-              href="#contact"
-              className="flex h-12 w-12 -rotate-6 items-center justify-center rounded-full bg-brand-blue text-center text-xs font-bold leading-tight text-white hover:rotate-0 hover:scale-105 transition shadow-btn"
+          <div className="mt-6 sm:mt-8 flex items-center gap-6 sm:gap-8">
+            <button
+              onClick={() => setIsOpen(true)}
+              className="blob-btn blob-btn-sm bg-brand-blue text-white/90"
             >
-              Msg
-              <br />
-              {m.first}
-            </a>
-            <a href="#" aria-label="LinkedIn" className="hover:opacity-80 transition">
-              <svg viewBox="0 0 24 24" className="h-8 w-8">
+              Msg<br />{m.first.split(" ")[0]}
+            </button>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="LinkedIn"
+              className="hover:opacity-90 transition"
+            >
+              <svg viewBox="0 0 24 24" className="h-[48px] w-[48px] sm:h-[64px] sm:w-[64px]">
                 <rect width="24" height="24" rx="4" fill="#4E6B8A" />
                 <path fill="#fff" d="M7 9.5h2.6V18H7zM8.3 5.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM11 9.5h2.5v1.2c.4-.7 1.3-1.4 2.6-1.4 2.7 0 3.2 1.8 3.2 4.1V18h-2.6v-4c0-1 0-2.2-1.4-2.2s-1.6 1-1.6 2.1V18H11z" />
               </svg>
@@ -454,19 +669,21 @@ const Team = () => {
   )
 }
 
-/* ---------- 9. 5-Star Service & Reviews ---------- */
+/* ================================================================
+   9. REVIEWS
+   ================================================================ */
 
 const reviews = [
   { name: "Winnie Asawakanjanakit", text: "I had a such a great time working with Steven and his team! They were very professional and they created a safe space for me which made my job as a model on set easier and more enjoyable. Would definitely love to work with them again. :)" },
   { name: "Crime And Comedy Theatre Co..", text: "Steve & Charlie at Pocket Creatives were fantastic, really first class. Our project involved an older actor and not only did they conduct the pre-shoot with personable, fact-finding efficiency, but they were very considerate, accommodating..." },
-  { name: "John Bond", text: "Very professional company to deal with and delighted with the product videos received. Always a pleasure to dela with Steven and his team." },
+  { name: "John Bond", text: "Very professional company to deal with and delighted with the product videos received. Always a pleasure to deal with Steven and his team." },
   { name: "Marcus Ramtohul", text: "I've shot with Pocket Creatives on a number of occasions as a model and actor. Always delivering amazing results for clients - gorgeous images and a fun and creative environment. I am constantly looking forward to the next opportunity to shoot with..." },
   { name: "Klara Niklewicz", text: "Really enjoyed working with Pocket Creatives on a video campaign & webinar. Delivery was quick and to high standard. Thank you!" },
-  { name: "More reviews", text: "Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare." },
+  { name: "Michelle Vellacott", text: "Pocket Creatives are a great, friendly production company and we love having them use our studios at Tower Bridge Studios. Always a wonderful atmosphere when they are here. Pre-production for the shoot is always very smooth and efficient. A great..." },
 ]
 
 const GoogleG = () => (
-  <svg viewBox="0 0 48 48" className="h-8 w-8">
+  <svg viewBox="0 0 48 48" className="h-[36px] w-[36px] sm:h-[48px] sm:w-[48px] shrink-0">
     <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
     <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
     <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
@@ -475,110 +692,138 @@ const GoogleG = () => (
 )
 
 const Reviews = () => (
-  <section className="py-16 sm:py-24">
-    <div className="container-x grid gap-10 lg:grid-cols-[1fr_auto] items-center mb-12">
+  <section className="py-14 sm:py-20 lg:py-28">
+    <div className="container-x grid gap-8 sm:gap-10 lg:grid-cols-[1fr_667px] lg:items-start">
       <div>
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-[1.1] tracking-tight">
-          Go behind the
-          <br />
-          scenes of our
-          <br />
-          <span className="text-brand-blue underline decoration-4 underline-offset-8">5 Star</span> Service
+        <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1.1em] tracking-[-0.05em]">
+          <span className="text-brand-slate">Go behind the scenes of our </span>
+          <a
+            href="https://www.google.com/maps/place/Pocket+Creatives"
+            target="_blank"
+            rel="noreferrer"
+            className="text-brand-blue underline decoration-2 underline-offset-[8px]"
+          >
+            5 Star
+          </a>
+          <span className="text-brand-slate"> Service</span>
         </h2>
-        <div className="mt-6 flex items-center gap-3 text-base sm:text-lg font-bold">
+        <div className="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
           <GoogleG />
-          <span>
-            Based on
-            <br />
-            88 reviews
+          <span className="text-[clamp(16px,1.5vw,30px)] font-extrabold tracking-[-0.05em] text-brand-slate">
+            Based on<br />88 reviews
           </span>
         </div>
       </div>
 
-      <div className="w-full lg:w-[480px]">
-        <p className="text-xs text-brand-slate/80 font-medium mb-1">*Click on Video to toggle sound</p>
-        <img src={bts} alt="Behind the scenes" className="w-full rounded-2xl shadow-lg object-cover" />
+      <div>
+        <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em] mb-2">
+          *Click on Video to toggle sound
+        </p>
+        <img src={bts} alt="Behind the scenes" className="w-full rounded-[12px] shadow-md" />
       </div>
     </div>
 
-    {/* Review cards */}
-    <div className="no-scrollbar flex gap-4 sm:gap-6 overflow-x-auto px-4 sm:px-8 md:px-12 lg:px-16">
+    <div className="no-scrollbar mt-8 sm:mt-12 flex gap-4 sm:gap-6 overflow-x-auto pl-[max(20px,calc((100vw-1440px)/2+20px))]">
       {reviews.map(r => (
-        <div
-          key={r.name}
-          className="w-[240px] sm:w-[280px] shrink-0 rounded-2xl bg-[#E3E3E3] p-2 flex flex-col justify-between shadow-sm"
-        >
-          <p className="h-[140px] overflow-hidden rounded-xl bg-white p-4 text-xs leading-relaxed text-black">
-            {r.text}
+        <div key={r.name} className="w-[280px] sm:w-[357px] shrink-0 rounded-[24px] sm:rounded-[32px] bg-[#E6E6E6] p-2.5 sm:p-3 shadow-sm">
+          <div className="h-[190px] sm:h-[226px] overflow-hidden rounded-[18px] sm:rounded-[24px] bg-white p-5 sm:p-7">
+            <p className="text-[15px] sm:text-[18px] font-medium leading-[1.4em] tracking-[-0.05em] text-black">
+              {r.text}
+            </p>
+          </div>
+          <p className="px-4 sm:px-6 py-3 sm:py-4 text-[16px] sm:text-[20px] font-extrabold tracking-[-0.05em] text-brand-slate">
+            {r.name}
           </p>
-          <p className="px-3 py-2 text-xs font-bold text-black truncate">{r.name}</p>
         </div>
       ))}
+      <div className="shrink-0 w-8" />
     </div>
   </section>
 )
 
-/* ---------- 10. Pricing & CTA ---------- */
+/* ================================================================
+   10. PRICING
+   ================================================================ */
 
-const Pricing = () => (
-  <section id="pricing" className="container-x py-16 sm:py-24 border-t border-brand-slate/20">
-    <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6">
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight tracking-tight max-w-2xl">
-        <span className="text-brand-yellow">We value</span>{" "}
-        <span className="text-brand-blue">transparency</span>,
-        <br />
-        so let's talk about pricing.
-      </h2>
-      <a
-        href="#pricing"
-        className="shrink-0 rounded-xl bg-brand-yellow px-5 py-2.5 text-sm sm:text-base font-bold text-black shadow-btn hover:brightness-95 transition"
-      >
-        View Pricing
-      </a>
-    </div>
+const Pricing = () => {
+  const { setIsOpen } = React.useContext(ModalContext)
 
-    <p className="mt-8 sm:mt-10 max-w-2xl text-lg sm:text-2xl font-normal leading-snug tracking-tight">
-      Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare.
-    </p>
+  return (
+    <section id="pricing" className="container-x py-16 sm:py-24 lg:py-32">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 sm:gap-8">
+        <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1em] tracking-[-0.05em]">
+          <span className="text-brand-yellow">We value</span>{" "}
+          <span className="text-brand-blue">transparency</span>,<br />
+          <span className="text-brand-slate">so let's talk about pricing.</span>
+        </h2>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[clamp(16px,1.5vw,30px)] font-medium text-black hover:brightness-105 transition self-start sm:self-auto"
+          style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
+        >
+          View Pricing
+        </button>
+      </div>
 
-    <div className="mt-8 sm:mt-12 grid gap-8 lg:grid-cols-[1fr_auto] items-center">
-      <p className="text-xs sm:text-sm leading-relaxed text-brand-slate max-w-xl">{LOREM}</p>
-      <a
-        href="#contact"
-        className="flex items-center justify-center gap-4 rounded-2xl bg-brand-yellow px-8 py-5 shadow-btn hover:scale-[1.02] transition-transform w-full sm:w-auto"
-      >
-        <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">Request</span>
-        <span className="text-center text-lg sm:text-xl font-bold leading-tight text-black">
-          a<br />quote
-        </span>
-      </a>
-    </div>
-  </section>
-)
+      <p className="mt-8 sm:mt-12 text-[clamp(18px,2.1vw,40px)] font-medium leading-[1.2em] tracking-[-0.05em] text-brand-slate max-w-[708px]">
+        Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare.
+      </p>
 
-/* ---------- Main Index Page Component ---------- */
+      <div className="mt-8 sm:mt-10 grid gap-6 sm:gap-8 lg:grid-cols-[1fr_643px] lg:items-start">
+        <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.8em] tracking-[-0.05em] text-brand-slate max-w-[701px]">
+          {LOREM}
+        </p>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex items-center justify-center gap-3 sm:gap-4 rounded-[16px] bg-brand-yellow py-3.5 sm:py-4 px-6 sm:px-8 hover:brightness-105 transition text-left"
+          style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
+        >
+          <span className="text-[clamp(36px,5vw,96px)] font-extrabold tracking-[-0.05em] text-white leading-[1em]">
+            Request
+          </span>
+          <span className="text-[clamp(20px,2.5vw,48px)] font-medium tracking-[-0.05em] text-black leading-[0.8em]">
+            a<br />quote
+          </span>
+        </button>
+      </div>
+    </section>
+  )
+}
 
-const IndexPage = () => (
-  <Layout>
-    <Hero />
-    <Partners />
-    <VideoIntro />
-    <VideoProduction />
-    <PhotoIntro />
-    <Photography />
-    <Services />
-    <Team />
-    <Reviews />
-    <Pricing />
-  </Layout>
-)
+/* ================================================================
+   PAGE
+   ================================================================ */
+
+const IndexPage = () => {
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  return (
+    <ModalContext.Provider value={{ isOpen, setIsOpen }}>
+      <Layout>
+        <ContactModal />
+        <Hero />
+        <Partners />
+        <VideoIntro />
+        <VideoProduction />
+        <PhotoIntro />
+        <Photography />
+        <Services />
+        <Team />
+        <Reviews />
+        <Pricing />
+      </Layout>
+    </ModalContext.Provider>
+  )
+}
 
 export default IndexPage
 
 export const Head = () => (
   <>
     <title>Pocket Creatives | Video Production &amp; Photography</title>
-    <meta name="description" content="Fast & friendly Video Production and Photography company with bags of experience." />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Fast & friendly Video Production and Photography company with bags of experience."
+    />
   </>
 )

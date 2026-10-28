@@ -2,14 +2,6 @@ import * as React from "react"
 import { Link } from "gatsby"
 import logo from "../images/logo.png"
 
-const navLinks = [
-  { label: "Home", to: "/", active: true },
-  { label: "About", to: "#about" },
-  { label: "Works", to: "#works" },
-  { label: "Services", to: "#services" },
-  { label: "Pricing", to: "#pricing" },
-]
-
 const WhatsApp = props => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.3l-4.5 1.2z" />
@@ -17,37 +9,130 @@ const WhatsApp = props => (
   </svg>
 )
 
-export const Nav = () => (
-  <div className="sticky top-3 sm:top-5 z-50 flex justify-center px-4">
-    <nav className="flex items-center gap-3 sm:gap-6 md:gap-8 rounded-full bg-white px-4 sm:px-6 py-2 sm:py-2.5 shadow-lg text-xs sm:text-sm font-medium text-black transition-all">
-      <Link to="/" className="flex items-center" aria-label="Home">
-        <img src={logo} alt="Pocket Creatives" className="h-5 sm:h-6 object-contain" />
-      </Link>
-      <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
-        <Link
-          to="/"
-          className="rounded-full bg-brand-yellow px-3 sm:px-4 py-1 font-semibold text-black hover:brightness-95 transition-all shadow-sm"
-        >
-          Home
-        </Link>
-        <span className="hidden md:inline cursor-default text-black select-none">About</span>
-        <span className="hidden md:inline cursor-default text-black select-none">Works</span>
-        <span className="hidden md:inline cursor-default text-black select-none">Services</span>
-        <span className="hidden md:inline cursor-default text-black select-none">Pricing</span>
-        <span className="rounded-full bg-brand-cyan px-3 sm:px-4 py-1 font-semibold text-black cursor-default select-none">
-          Contact
-        </span>
-        <span className="text-brand-slate p-1 cursor-default select-none" aria-label="WhatsApp">
-          <WhatsApp className="h-5 w-5" />
-        </span>
+export const Nav = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+
+  return (
+    <>
+      <div className="sticky top-4 sm:top-6 z-50 flex justify-center px-4">
+        <nav className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 rounded-[24px] bg-white px-4 sm:px-6 py-2.5 sm:py-[11px] shadow-[0_4px_16px_rgba(0,0,0,0.1)] text-[15px] sm:text-[18px] font-medium text-black max-w-full">
+          <Link to="/" className="flex items-center mr-1 sm:mr-3 shrink-0">
+            <img src={logo} alt="Pocket Creatives" className="h-[36px] sm:h-[46px] lg:h-[50px] w-auto object-contain" />
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center gap-2">
+            <Link
+              to="/"
+              className="rounded-[16px] bg-brand-yellow px-4 py-1.5 font-semibold text-black"
+            >
+              Home
+            </Link>
+            <a href="#about" className="rounded-[16px] px-4 py-1.5 hover:text-brand-blue transition-colors">About</a>
+            <a href="#works" className="rounded-[16px] px-4 py-1.5 hover:text-brand-blue transition-colors">Works</a>
+            <a href="#services" className="rounded-[16px] px-4 py-1.5 hover:text-brand-blue transition-colors">Services</a>
+            <a href="#pricing" className="rounded-[16px] px-4 py-1.5 hover:text-brand-blue transition-colors">Pricing</a>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href="#contact"
+              className="rounded-[16px] bg-[#32D6FF] px-3.5 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-[16px] font-semibold text-black whitespace-nowrap shadow-sm hover:brightness-105 transition"
+            >
+              Contact
+            </a>
+            <a
+              href="https://wa.me/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-brand-slate hover:text-green-600 transition p-1"
+              aria-label="WhatsApp"
+            >
+              <WhatsApp className="h-6 w-6 sm:h-[30px] sm:w-[30px]" />
+            </a>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-1.5 rounded-lg text-black hover:bg-gray-100 transition"
+              aria-label="Toggle menu"
+            >
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.2">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+        </nav>
       </div>
-    </nav>
-  </div>
-)
+
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div
+            className="fixed top-20 left-4 right-4 bg-white rounded-[24px] p-6 shadow-2xl space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col gap-2 text-lg font-bold text-black">
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-xl bg-brand-yellow px-4 py-2.5 text-black"
+              >
+                Home
+              </Link>
+              <a
+                href="#about"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-2 hover:bg-gray-100 rounded-xl transition"
+              >
+                About
+              </a>
+              <a
+                href="#works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-2 hover:bg-gray-100 rounded-xl transition"
+              >
+                Works
+              </a>
+              <a
+                href="#services"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-2 hover:bg-gray-100 rounded-xl transition"
+              >
+                Services
+              </a>
+              <a
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-2 hover:bg-gray-100 rounded-xl transition"
+              >
+                Pricing
+              </a>
+              <a
+                href="#contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-xl bg-[#32D6FF] px-4 py-2.5 text-black"
+              >
+                Contact Us
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
 
 const quickLinks = [
-  "Home", "About", "Works", "Services", "Pricing", "Contact", "Blogs",
-  "Photography Testimonials", "Videography Testimonials",
+  "HOME", "ABOUT", "WORKS", "SERVICES", "PRICING", "CONTACT", "BLOGS",
+  "PHOTOGRAPHY TESTIMONIALS", "VIDEOGRAPHY TESTIMONIALS",
 ]
 
 const socials = {
@@ -63,85 +148,85 @@ const socials = {
 
 export const Footer = () => (
   <footer id="contact" className="bg-brand-blue text-white">
-    <div className="container-x relative pt-16 md:pt-20 pb-12">
-      <div className="flex flex-col lg:flex-row justify-between gap-10 items-start">
-        <div className="max-w-2xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.1] tracking-[-0.03em]">
-            We'd love to chat about how we can help you with your next project,
-            get in touch!
-          </h2>
-          <div className="mt-8 sm:mt-10 grid gap-6 sm:grid-cols-2 text-black text-base sm:text-lg font-bold">
-            <div className="space-y-4">
-              <a
-                href="mailto:team@pocketcreatives.co.uk"
-                className="block underline underline-offset-4 hover:opacity-80 transition-opacity"
-              >
-                team@pocketcreatives.co.uk
-              </a>
-              <a href="tel:02036338494" className="block hover:opacity-80 transition-opacity">
-                020 3633 8494
-              </a>
-            </div>
-            <address className="not-italic underline underline-offset-4 leading-relaxed">
-              Wow Workspaces Battersea
-              <br />
-              Unit 3, 7-9 Ingate Place
-              <br />
-              Battersea, London SW8 3NS
-            </address>
-          </div>
+    <div className="container-x pt-14 sm:pt-20 pb-10">
+      <h2 className="max-w-[888px] text-[clamp(26px,3.3vw,64px)] font-semibold leading-[1.1em] tracking-[-0.05em]">
+        We'd love to chat about how we can help you with your next project, get in touch!
+      </h2>
 
-          <form
-            className="mt-8 flex flex-col sm:flex-row gap-3 items-start sm:items-end"
-            onSubmit={e => e.preventDefault()}
+      <div className="mt-10 sm:mt-16 grid gap-8 sm:grid-cols-2 text-black">
+        <div className="space-y-4 sm:space-y-6">
+          <a
+            href="mailto:team@pocketcreatives.co.uk"
+            className="block text-[clamp(16px,1.5vw,30px)] font-extrabold underline underline-offset-4 tracking-[-0.05em] break-all sm:break-normal"
           >
-            <label className="text-xs sm:text-sm text-white font-medium">
-              Sign up to our Newsletter
-              <input
-                type="email"
-                placeholder="Your Email Address"
-                className="mt-1 block w-full sm:w-64 rounded border border-black bg-white px-3 py-2 text-xs sm:text-sm text-black focus:outline-none focus:ring-2 focus:ring-brand-yellow"
-              />
-            </label>
-            <button className="rounded bg-brand-yellow px-5 py-2 text-xs sm:text-sm font-bold text-black hover:brightness-95 transition-all shadow-sm">
-              Subscribe
-            </button>
-          </form>
+            team@pocketcreatives.co.uk
+          </a>
+          <p className="text-[clamp(16px,1.5vw,30px)] font-extrabold tracking-[-0.05em]">
+            020 3633 8494
+          </p>
         </div>
+        <address className="not-italic">
+          <a
+            href="https://maps.google.com/maps?q=wow+workspaces+battersea"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[clamp(16px,1.5vw,30px)] font-extrabold underline underline-offset-4 leading-[1.4em] tracking-[-0.05em] text-black block"
+          >
+            Wow Workspaces Battersea<br />
+            Unit 3, 7-9 Ingate Place<br />
+            Battersea, London SW8 3NS
+          </a>
+        </address>
+      </div>
 
-        <div className="self-start lg:self-center bg-white rounded-2xl p-4 sm:p-6 shadow-md">
-          <img src={logo} alt="Pocket Creatives" className="h-8 sm:h-10 object-contain" />
-        </div>
+      <div className="mt-8 sm:mt-10">
+        <p className="text-[clamp(14px,1vw,20px)] text-white tracking-[-0.05em]">
+          Sign up to our Newsletter
+        </p>
+        <form className="mt-3 flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end" onSubmit={e => e.preventDefault()}>
+          <input
+            type="email"
+            placeholder="Your Email Address"
+            className="w-full sm:w-[404px] border border-black bg-white px-3 py-2.5 text-[15px] sm:text-[16px] text-black tracking-[-0.05em] rounded-md sm:rounded-none"
+          />
+          <button className="text-[clamp(14px,1vw,20px)] font-semibold underline underline-offset-2 text-brand-yellow self-start sm:self-auto py-1">
+            Subscribe
+          </button>
+        </form>
+      </div>
+
+      <div className="mt-8 inline-flex items-center rounded-[24px] bg-white px-6 sm:px-[38px] py-2 shadow-[0_4px_16px_rgba(0,0,0,0.1)]">
+        <img src={logo} alt="Pocket Creatives" className="h-[45px] sm:h-[60px] w-auto object-contain" />
       </div>
     </div>
 
-    <div className="border-t border-white/40">
-      <div className="container-x py-6">
-        <p className="text-base sm:text-lg font-bold text-black mb-3">QuickLinks</p>
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-xs sm:text-sm font-medium tracking-wide uppercase">
+    <div className="border-t border-white/50">
+      <div className="container-x py-5 sm:py-6">
+        <p className="text-[clamp(18px,1.5vw,30px)] font-extrabold text-black mb-3 tracking-[-0.05em]">
+          QuickLinks
+        </p>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
           {quickLinks.map(l => (
-            <li key={l}>
-              <a href="#" className="hover:underline transition-all">
-                {l}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-
-    <div className="border-t border-white/40">
-      <div className="container-x flex flex-col sm:flex-row items-center justify-between gap-4 py-4 text-xs">
-        <div className="flex items-center gap-5">
-          {Object.entries(socials).map(([name, d]) => (
-            <a key={name} href="#" aria-label={name} className="hover:opacity-80 transition-opacity">
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white">
-                <path d={d} />
-              </svg>
+            <a key={l} href="#" className="text-[clamp(12px,1vw,20px)] tracking-[-0.05em] text-white hover:underline">
+              {l}
             </a>
           ))}
         </div>
-        <p className="text-white/80">Designed &amp; Built By Seek Marketing Partners 2025</p>
+      </div>
+    </div>
+
+    <div className="border-t border-white/50">
+      <div className="container-x flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
+        <div className="flex flex-wrap items-center gap-5 sm:gap-8">
+          {Object.entries(socials).map(([name, d]) => (
+            <a key={name} href="#" aria-label={name} className="hover:opacity-80 transition">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6 fill-white"><path d={d} /></svg>
+            </a>
+          ))}
+        </div>
+        <p className="text-[clamp(12px,1vw,20px)] tracking-[-0.05em] text-white/90">
+          Designed &amp; Built By Seek Marketing Partners 2025
+        </p>
       </div>
     </div>
   </footer>
