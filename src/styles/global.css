@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,15 +6,27 @@
 
 @layer base {
   body {
-    @apply font-sans text-brand-navy bg-white antialiased;
+    @apply font-sans bg-brand-bg text-brand-slate antialiased;
   }
 }
 
 @layer components {
   .container-x {
-    @apply mx-auto w-full max-w-6xl px-5 md:px-8;
+    @apply mx-auto w-full max-w-[756px] px-5 lg:px-0;
   }
-  .placeholder-img {
-    @apply bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-500 text-sm;
+  .heading-xl {
+    @apply text-5xl md:text-[64px] font-extrabold leading-[0.95] tracking-[-0.04em];
+  }
+  .blob-btn {
+    @apply flex h-20 w-20 items-center justify-center rounded-[28px] text-center text-[15px] font-bold leading-tight shadow-btn -rotate-6 transition hover:rotate-0;
+  }
+  .lorem {
+    @apply text-[10px] leading-[21px];
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
   }
 }

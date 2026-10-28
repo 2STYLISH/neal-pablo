@@ -5,15 +5,19 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          yellow: "#FFC21A",
-          blue: "#1A9CC4",
-          navy: "#14213D",
-          pink: "#F7C6CF",
-          red: "#E63946",
+          yellow: "#FFBF1A",
+          blue: "#179CC0",
+          cyan: "#2BC4F3",
+          slate: "#4E6B8A",
+          bg: "#F2F2F2",
+          red: "#F21D0A",
         },
       },
       fontFamily: {
-        sans: ["Poppins", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        btn: "0 3px 4px rgba(0,0,0,0.25)",
       },
     },
   },
