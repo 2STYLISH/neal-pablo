@@ -6,7 +6,10 @@ import heroImg from "../images/hero.png"
 import heroPeople from "../images/hero-people.png"
 import videoBeauty from "../images/video-beauty.png"
 import videoFood from "../images/video-food.png"
+import videoProducts from "../images/video-products.png"
+import videoEvents from "../images/video-events.png"
 import photoBeauty from "../images/photo-beauty.png"
+import photoPeople from "../images/photo-people.png"
 import steven from "../images/steven.png"
 import bts from "../images/bts.png"
 import argos from "../images/logo-argos.png"
@@ -115,7 +118,7 @@ const Partners = () => (
     <div className="grid grid-cols-3 gap-[13px]">
       {partners.map(([src, alt]) => (
         <div key={alt} className="flex h-[52px] items-center justify-center rounded-lg bg-white shadow-btn">
-          <img src={src} alt={alt} className="max-h-[44px]" />
+          <img src={src} alt={alt} className="max-h-[40px] max-w-[85%] object-contain" />
         </div>
       ))}
     </div>
@@ -151,8 +154,8 @@ const VideoIntro = () => (
 const videos = [
   { title: "Beauty", img: videoBeauty },
   { title: "Food&Drink", img: videoFood },
-  { title: "Products", img: null },
-  { title: "Events", img: null },
+  { title: "Products", img: videoProducts },
+  { title: "Events", img: videoEvents },
   { title: "Fashion", img: null },
 ]
 
@@ -213,6 +216,8 @@ const PhotoIntro = () => (
 
 const photoCats = ["Beauty", "Food & Drink", "Product", "Events", "Crowdfunding", "Fashion", "People", "Jewellery"]
 
+const photoImages = { Beauty: photoBeauty, People: photoPeople }
+
 const Photography = () => {
   const [active, setActive] = React.useState("Beauty")
   return (
@@ -237,8 +242,8 @@ const Photography = () => {
           ))}
         </ul>
         <div className="md:mr-[calc((756px-100vw)/2)]">
-          {active === "Beauty" ? (
-            <img src={photoBeauty} alt="Beauty photography" className="h-[321px] w-full object-cover object-left" />
+          {photoImages[active] ? (
+            <img src={photoImages[active]} alt={`${active} photography`} className="h-[321px] w-full object-cover object-left" />
           ) : (
             <div className="flex h-[321px] w-full items-center justify-center bg-slate-300 text-slate-500">
               {active} photography

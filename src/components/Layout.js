@@ -1,7 +1,8 @@
 import * as React from "react"
 import { Link } from "gatsby"
-import logoSmall from "../images/logo-small.png"
 import logo from "../images/logo.png"
+
+const logoSmall = logo
 
 const navLinks = [
   { label: "Home", to: "/", active: true },
