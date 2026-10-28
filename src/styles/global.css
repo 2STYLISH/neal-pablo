@@ -5,6 +5,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
   body {
     @apply font-sans bg-brand-bg text-brand-slate antialiased;
   }
@@ -12,16 +16,13 @@
 
 @layer components {
   .container-x {
-    @apply mx-auto w-full max-w-[756px] px-5 lg:px-0;
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 md:px-10 lg:px-14 xl:px-16;
   }
   .heading-xl {
-    @apply text-5xl md:text-[64px] font-extrabold leading-[0.95] tracking-[-0.04em];
+    @apply text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-[-0.03em];
   }
   .blob-btn {
-    @apply flex h-20 w-20 items-center justify-center rounded-[28px] text-center text-[15px] font-bold leading-tight shadow-btn -rotate-6 transition hover:rotate-0;
-  }
-  .lorem {
-    @apply text-[10px] leading-[21px];
+    @apply flex shrink-0 h-20 w-20 md:h-24 md:w-24 items-center justify-center rounded-[24px] md:rounded-[28px] text-center text-sm md:text-base font-bold leading-tight shadow-btn -rotate-6 transition hover:rotate-0 hover:scale-105;
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;

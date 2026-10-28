@@ -2,8 +2,6 @@ import * as React from "react"
 import { Link } from "gatsby"
 import logo from "../images/logo.png"
 
-const logoSmall = logo
-
 const navLinks = [
   { label: "Home", to: "/", active: true },
   { label: "About", to: "#about" },
@@ -13,35 +11,52 @@ const navLinks = [
 ]
 
 const WhatsApp = props => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.3l-4.5 1.2z" />
     <path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 .8a5 5 0 0 1-2.8-2.8l.8-1-1-2L9 8.5z" />
   </svg>
 )
 
 export const Nav = () => (
-  <div className="sticky top-3 z-50 flex justify-center px-3 pt-3">
-    <nav className="flex items-center gap-4 md:gap-6 rounded-2xl bg-white px-6 py-2.5 shadow-md text-[12px] text-black">
-      <Link to="/">
-        <img src={logoSmall} alt="Pocket Creatives" className="h-6" />
+  <div className="sticky top-3 sm:top-5 z-50 flex justify-center px-4">
+    <nav className="flex items-center gap-3 sm:gap-6 md:gap-8 rounded-full bg-white px-4 sm:px-6 py-2 sm:py-2.5 shadow-lg text-xs sm:text-sm font-medium text-black transition-all">
+      <Link to="/" className="flex items-center">
+        <img src={logo} alt="Pocket Creatives" className="h-5 sm:h-6 object-contain" />
       </Link>
-      {navLinks.map(l =>
-        l.active ? (
-          <Link key={l.label} to={l.to} className="rounded-full bg-brand-yellow px-3 py-0.5">
-            {l.label}
-          </Link>
-        ) : (
-          <a key={l.label} href={l.to} className="hidden sm:inline hover:text-brand-blue">
-            {l.label}
-          </a>
-        )
-      )}
-      <a href="#contact" className="rounded-full bg-brand-cyan px-3 py-0.5">
-        Contact
-      </a>
-      <a href="https://wa.me/442036338494" aria-label="WhatsApp" className="text-brand-slate">
-        <WhatsApp className="h-5 w-5" />
-      </a>
+      <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+        {navLinks.map(l =>
+          l.active ? (
+            <Link
+              key={l.label}
+              to={l.to}
+              className="rounded-full bg-brand-yellow px-3 sm:px-4 py-1 font-semibold text-black"
+            >
+              {l.label}
+            </Link>
+          ) : (
+            <a
+              key={l.label}
+              href={l.to}
+              className="hidden md:inline hover:text-brand-blue transition-colors"
+            >
+              {l.label}
+            </a>
+          )
+        )}
+        <a
+          href="#contact"
+          className="rounded-full bg-brand-cyan px-3 sm:px-4 py-1 font-semibold text-black hover:opacity-90 transition-opacity"
+        >
+          Contact
+        </a>
+        <a
+          href="https://wa.me/442036338494"
+          aria-label="WhatsApp"
+          className="text-brand-slate hover:text-green-600 transition-colors p-1"
+        >
+          <WhatsApp className="h-5 w-5" />
+        </a>
+      </div>
     </nav>
   </div>
 )
@@ -64,63 +79,85 @@ const socials = {
 
 export const Footer = () => (
   <footer id="contact" className="bg-brand-blue text-white">
-    <div className="container-x relative pt-12 pb-6">
-      <h2 className="max-w-[470px] text-[32px] font-semibold leading-[1.05] tracking-[-0.02em]">
-        We'd love to chat about how we can help you with your next project,
-        get in touch!
-      </h2>
-      <div className="mt-10 grid gap-8 sm:grid-cols-[240px_1fr] text-black text-[15px] font-bold">
-        <div className="space-y-8">
-          <a href="mailto:team@pocketcreatives.co.uk" className="block underline underline-offset-4">
-            team@pocketcreatives.co.uk
-          </a>
-          <a href="tel:02036338494" className="block">020 3633 8494</a>
+    <div className="container-x relative pt-16 md:pt-20 pb-12">
+      <div className="flex flex-col lg:flex-row justify-between gap-10 items-start">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.1] tracking-[-0.03em]">
+            We'd love to chat about how we can help you with your next project,
+            get in touch!
+          </h2>
+          <div className="mt-8 sm:mt-10 grid gap-6 sm:grid-cols-2 text-black text-base sm:text-lg font-bold">
+            <div className="space-y-4">
+              <a
+                href="mailto:team@pocketcreatives.co.uk"
+                className="block underline underline-offset-4 hover:opacity-80 transition-opacity"
+              >
+                team@pocketcreatives.co.uk
+              </a>
+              <a href="tel:02036338494" className="block hover:opacity-80 transition-opacity">
+                020 3633 8494
+              </a>
+            </div>
+            <address className="not-italic underline underline-offset-4 leading-relaxed">
+              Wow Workspaces Battersea
+              <br />
+              Unit 3, 7-9 Ingate Place
+              <br />
+              Battersea, London SW8 3NS
+            </address>
+          </div>
+
+          <form
+            className="mt-8 flex flex-col sm:flex-row gap-3 items-start sm:items-end"
+            onSubmit={e => e.preventDefault()}
+          >
+            <label className="text-xs sm:text-sm text-white font-medium">
+              Sign up to our Newsletter
+              <input
+                type="email"
+                placeholder="Your Email Address"
+                className="mt-1 block w-full sm:w-64 rounded border border-black bg-white px-3 py-2 text-xs sm:text-sm text-black focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+              />
+            </label>
+            <button className="rounded bg-brand-yellow px-5 py-2 text-xs sm:text-sm font-bold text-black hover:brightness-95 transition-all shadow-sm">
+              Subscribe
+            </button>
+          </form>
         </div>
-        <address className="not-italic underline underline-offset-4 leading-[1.6]">
-          Wow Workspaces Battersea
-          <br />
-          Unit 3, 7-9 Ingate Place
-          <br />
-          Battersea, London SW8 3NS
-        </address>
-      </div>
-      <form className="mt-6 grid gap-2 sm:grid-cols-[240px_1fr] items-end" onSubmit={e => e.preventDefault()}>
-        <label className="text-[10px]">
-          Sign up to our Newsletter
-          <input
-            type="email"
-            placeholder="Your Email Address"
-            className="mt-1 block w-[212px] border border-black bg-white px-1.5 py-1 text-[8px] text-black"
-          />
-        </label>
-        <button className="justify-self-start text-[10px] underline underline-offset-2">Subscribe</button>
-      </form>
-      <div className="mt-6 md:absolute md:right-[-120px] md:bottom-4 inline-block rounded-xl bg-white px-5 py-2.5">
-        <img src={logo} alt="Pocket Creatives" className="h-5" />
+
+        <div className="self-start lg:self-center bg-white rounded-2xl p-4 sm:p-6 shadow-md">
+          <img src={logo} alt="Pocket Creatives" className="h-8 sm:h-10 object-contain" />
+        </div>
       </div>
     </div>
-    <div className="border-t border-white/60">
-      <div className="container-x py-3">
-        <p className="text-[15px] font-bold text-black">QuickLinks</p>
-        <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[10px] uppercase">
+
+    <div className="border-t border-white/40">
+      <div className="container-x py-6">
+        <p className="text-base sm:text-lg font-bold text-black mb-3">QuickLinks</p>
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-xs sm:text-sm font-medium tracking-wide uppercase">
           {quickLinks.map(l => (
             <li key={l}>
-              <a href="#" className="hover:underline">{l}</a>
+              <a href="#" className="hover:underline transition-all">
+                {l}
+              </a>
             </li>
           ))}
         </ul>
       </div>
     </div>
-    <div className="border-t border-white/60">
-      <div className="container-x flex flex-wrap items-center justify-between gap-4 py-3">
+
+    <div className="border-t border-white/40">
+      <div className="container-x flex flex-col sm:flex-row items-center justify-between gap-4 py-4 text-xs">
         <div className="flex items-center gap-5">
           {Object.entries(socials).map(([name, d]) => (
-            <a key={name} href="#" aria-label={name}>
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white"><path d={d} /></svg>
+            <a key={name} href="#" aria-label={name} className="hover:opacity-80 transition-opacity">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white">
+                <path d={d} />
+              </svg>
             </a>
           ))}
         </div>
-        <p className="text-[9px]">Designed &amp; Built By Seek Marketing Partners 2025</p>
+        <p className="text-white/80">Designed &amp; Built By Seek Marketing Partners 2025</p>
       </div>
     </div>
   </footer>
