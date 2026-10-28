@@ -1,4 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply font-sans text-brand-navy bg-white antialiased;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-6xl px-5 md:px-8;
+  }
+  .placeholder-img {
+    @apply bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-500 text-sm;
+  }
+}
