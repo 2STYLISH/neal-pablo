@@ -20,42 +20,26 @@ const WhatsApp = props => (
 export const Nav = () => (
   <div className="sticky top-3 sm:top-5 z-50 flex justify-center px-4">
     <nav className="flex items-center gap-3 sm:gap-6 md:gap-8 rounded-full bg-white px-4 sm:px-6 py-2 sm:py-2.5 shadow-lg text-xs sm:text-sm font-medium text-black transition-all">
-      <Link to="/" className="flex items-center">
+      <Link to="/" className="flex items-center" aria-label="Home">
         <img src={logo} alt="Pocket Creatives" className="h-5 sm:h-6 object-contain" />
       </Link>
       <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
-        {navLinks.map(l =>
-          l.active ? (
-            <Link
-              key={l.label}
-              to={l.to}
-              className="rounded-full bg-brand-yellow px-3 sm:px-4 py-1 font-semibold text-black"
-            >
-              {l.label}
-            </Link>
-          ) : (
-            <a
-              key={l.label}
-              href={l.to}
-              className="hidden md:inline hover:text-brand-blue transition-colors"
-            >
-              {l.label}
-            </a>
-          )
-        )}
-        <a
-          href="#contact"
-          className="rounded-full bg-brand-cyan px-3 sm:px-4 py-1 font-semibold text-black hover:opacity-90 transition-opacity"
+        <Link
+          to="/"
+          className="rounded-full bg-brand-yellow px-3 sm:px-4 py-1 font-semibold text-black hover:brightness-95 transition-all shadow-sm"
         >
+          Home
+        </Link>
+        <span className="hidden md:inline cursor-default text-black select-none">About</span>
+        <span className="hidden md:inline cursor-default text-black select-none">Works</span>
+        <span className="hidden md:inline cursor-default text-black select-none">Services</span>
+        <span className="hidden md:inline cursor-default text-black select-none">Pricing</span>
+        <span className="rounded-full bg-brand-cyan px-3 sm:px-4 py-1 font-semibold text-black cursor-default select-none">
           Contact
-        </a>
-        <a
-          href="https://wa.me/442036338494"
-          aria-label="WhatsApp"
-          className="text-brand-slate hover:text-green-600 transition-colors p-1"
-        >
+        </span>
+        <span className="text-brand-slate p-1 cursor-default select-none" aria-label="WhatsApp">
           <WhatsApp className="h-5 w-5" />
-        </a>
+        </span>
       </div>
     </nav>
   </div>
