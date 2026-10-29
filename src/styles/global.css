@@ -17,19 +17,17 @@
 @layer components {
   /*
    * Main content column
-   * 1920: 1440px centered (240px margins)
-   * 1440: ~1366px (37px margins)
-   * Mobile: full-width with 20px padding
+   * Desktop (>=1024px): 1440px centered inside 1920px design space (240px margins)
+   * Mobile/Tablet (<1024px): full-width with 20px–37px padding
    */
   .container-x {
     @apply mx-auto w-full;
     max-width: 1440px;
-    padding-left: clamp(20px, 4vw, 40px);
-    padding-right: clamp(20px, 4vw, 40px);
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  /* At 1440px viewport, tighter margins matching Figma HP 1440 (x=37) */
-  @media (max-width: 1440px) {
+  @media (max-width: 1023px) {
     .container-x {
       max-width: 100%;
       padding-left: 37px;
@@ -46,14 +44,13 @@
   }
 
   .heading-xl {
-    font-size: clamp(32px, 6.25vw, 120px);
+    font-size: 120px;
     @apply font-extrabold leading-[1.0] tracking-[-0.05em];
   }
 
-  /* 1440px breakpoint heading adjustment */
-  @media (max-width: 1440px) {
+  @media (max-width: 1023px) {
     .heading-xl {
-      font-size: clamp(32px, 5.5vw, 90px);
+      font-size: clamp(32px, 7vw, 72px);
     }
   }
 
@@ -62,13 +59,12 @@
     box-shadow: 3px 3px 6px 0px rgba(82, 110, 135, 1);
   }
 
-  /* 1920px: 150x150 blob */
+  /* Desktop: 150x150 blob */
   .blob-btn-lg {
     @apply blob-btn h-[150px] w-[150px] text-[30px] -rotate-6;
   }
 
-  /* 1440px: 80x80 blob (matching Figma HP 1440) */
-  @media (max-width: 1440px) {
+  @media (max-width: 1023px) {
     .blob-btn-lg {
       @apply h-[100px] w-[100px] text-[22px];
     }

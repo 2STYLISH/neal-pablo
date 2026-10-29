@@ -1,5 +1,7 @@
 import * as React from "react"
 import Layout from "../components/Layout"
+import ContactModal, { ModalContext } from "../components/ContactModal"
+import useDragScroll from "../components/useDragScroll"
 
 import logo from "../images/logo.png"
 import heroImg from "../images/hero.png"
@@ -52,179 +54,6 @@ import bts from "../images/bts.png"
 const LOREM = "Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare. In nec lacinia consectetur placerat vestibulum sem odio. In feugiat elit fames eget lobortis turpis scelerisque tincidunt. Enim."
 
 /* ================================================================
-   DRAG-TO-SCROLL HOOK
-   Enables desktop mouse dragging + touch swiping like Figma
-   ================================================================ */
-
-const useDragScroll = () => {
-  const ref = React.useRef(null)
-  const isDragging = React.useRef(false)
-  const startX = React.useRef(0)
-  const scrollLeft = React.useRef(0)
-
-  const onMouseDown = e => {
-    if (!ref.current) return
-    isDragging.current = true
-    startX.current = e.pageX - ref.current.offsetLeft
-    scrollLeft.current = ref.current.scrollLeft
-  }
-  const onMouseLeave = () => {
-    isDragging.current = false
-  }
-  const onMouseUp = () => {
-    isDragging.current = false
-  }
-  const onMouseMove = e => {
-    if (!isDragging.current || !ref.current) return
-    e.preventDefault()
-    const x = e.pageX - ref.current.offsetLeft
-    const walk = (x - startX.current) * 1.5
-    ref.current.scrollLeft = scrollLeft.current - walk
-  }
-
-  return { ref, onMouseDown, onMouseLeave, onMouseUp, onMouseMove }
-}
-
-/* ================================================================
-   CONTACT MODAL  —  Exact Figma Node #325:1336
-   "Have a project you want to discuss?"
-   ================================================================ */
-
-export const ModalContext = React.createContext({ isOpen: false, setIsOpen: () => {} })
-
-const ContactModal = () => {
-  const { isOpen, setIsOpen } = React.useContext(ModalContext)
-
-  React.useEffect(() => {
-    if (!isOpen) return
-    const handler = e => { if (e.key === "Escape") setIsOpen(false) }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [isOpen, setIsOpen])
-
-  if (!isOpen) return null
-
-  return (
-    <div
-      className="modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={() => setIsOpen(false)}
-    >
-      <div
-        className="modal-card relative w-full max-w-[1050px] rounded-[12px] bg-brand-blue p-6 sm:p-10 lg:p-14 shadow-2xl my-auto text-black"
-        style={{
-          boxShadow: "0px 4px 20px 0px rgba(0, 0, 0, 0.35)",
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Close Button top-right */}
-        <button
-          onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-5 sm:top-6 sm:right-7 text-black hover:opacity-70 transition p-1"
-          aria-label="Close"
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6" stroke="currentColor" strokeWidth="2.5" fill="none">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        {/* 2-Column Layout matching Figma #325:1336 */}
-        <div className="grid gap-8 lg:grid-cols-[1fr_390px] lg:gap-14 items-start">
-          {/* Left Column: Heading + GDPR text */}
-          <div className="flex flex-col justify-between h-full space-y-6 sm:space-y-10">
-            <h3 className="text-3xl sm:text-5xl lg:text-[72px] font-extrabold text-white leading-[1.0] tracking-[-0.05em]">
-              Have a<br />
-              project you<br />
-              want to<br />
-              discuss?
-            </h3>
-
-            {/* GDPR Checkbox & Text */}
-            <div className="flex items-start gap-3 pt-4 sm:pt-10 max-w-[420px]">
-              <input
-                type="checkbox"
-                id="gdpr-check"
-                defaultChecked
-                className="mt-1 h-4 w-4 shrink-0 rounded-none border border-black bg-white accent-brand-blue cursor-pointer"
-              />
-              <label
-                htmlFor="gdpr-check"
-                className="text-xs sm:text-[15px] font-medium leading-[1.4] tracking-[-0.03em] text-black cursor-pointer select-none"
-              >
-                Lorem ipsum dolor sit amet consectetur. Nulla purus rhoncus at mattis. Et ac vitae ornare volutpat.
-              </label>
-            </div>
-          </div>
-
-          {/* Right Column: Form Fields */}
-          <form className="space-y-4 w-full max-w-[390px]" onSubmit={e => e.preventDefault()}>
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
-                Full Name*
-              </label>
-              <input
-                type="text"
-                placeholder="Full Name"
-                required
-                className="w-full h-[42px] sm:h-[45px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none"
-              />
-            </div>
-
-            {/* Contact Number */}
-            <div>
-              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
-                Contact Number*
-              </label>
-              <input
-                type="tel"
-                placeholder="Contact Number"
-                required
-                className="w-full h-[42px] sm:h-[45px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none"
-              />
-            </div>
-
-            {/* Email Address */}
-            <div>
-              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
-                Email Address*
-              </label>
-              <input
-                type="email"
-                placeholder="Email Address"
-                required
-                className="w-full h-[42px] sm:h-[45px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none"
-              />
-            </div>
-
-            {/* Message */}
-            <div>
-              <label className="block text-sm sm:text-[18px] font-medium leading-tight text-black mb-1.5 tracking-[-0.03em]">
-                Message
-              </label>
-              <textarea
-                placeholder="Message"
-                rows={3}
-                className="w-full h-[80px] sm:h-[90px] bg-white border border-black px-3 py-2 text-sm sm:text-[15px] text-black placeholder:text-[#526E87] outline-none resize-none"
-              />
-            </div>
-
-            {/* Send Button (Yellow, rounded-12px, white text) */}
-            <div className="flex justify-end pt-2">
-              <button
-                type="submit"
-                className="h-[40px] w-[103px] rounded-[12px] bg-brand-yellow text-[18px] font-medium text-white hover:brightness-105 transition flex items-center justify-center tracking-[-0.03em] shadow-sm"
-              >
-                Send
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ================================================================
    SHARED COMPONENTS
    ================================================================ */
 
@@ -243,7 +72,7 @@ const LetsTalk = ({ className = "" }) => {
 const SectionLabel = ({ icon, children }) => (
   <div className="flex items-center gap-3 sm:gap-4">
     {icon}
-    <span className="text-[clamp(20px,2.1vw,40px)] font-medium text-brand-slate tracking-[-0.05em]">
+    <span className="text-[20px] sm:text-[28px] lg:text-[40px] font-medium text-brand-slate tracking-[-0.05em]">
       {children}
     </span>
   </div>
@@ -295,7 +124,7 @@ const Hero = () => (
     </div>
     <hr className="mt-3 border-brand-slate/40" />
 
-    <h1 className="mt-4 text-[clamp(18px,2.5vw,48px)] font-medium leading-[1.5em] lg:leading-[2em] tracking-[-0.05em] text-black">
+    <h1 className="mt-4 text-[18px] sm:text-[28px] lg:text-[48px] font-medium leading-[1.5em] lg:leading-[2em] tracking-[-0.05em] text-black">
       We’re a <b className="font-bold text-brand-yellow">fast</b> &amp;{" "}
       <b className="font-extrabold text-brand-yellow">friendly</b>{" "}
       <b className="font-bold text-brand-blue">Video Production</b> and{" "}
@@ -356,13 +185,13 @@ const Partners = () => {
   return (
     <section className="container-x py-14 sm:py-20 lg:py-24 grid gap-8 lg:grid-cols-[1fr_640px] lg:items-start">
       <div>
-        <h2 className="text-[clamp(22px,2.1vw,40px)] font-medium leading-[1.35em] tracking-[-0.05em] text-brand-slate">
+        <h2 className="text-[22px] sm:text-[30px] lg:text-[40px] font-medium leading-[1.35em] tracking-[-0.05em] text-brand-slate">
           As you can see, we’ve <b className="font-black text-brand-yellow">partnered</b> with a lot of amazing people
         </h2>
-        <p className="mt-3 sm:mt-4 text-[clamp(22px,2.1vw,40px)] font-extrabold tracking-[-0.05em] text-brand-blue">
+        <p className="mt-3 sm:mt-4 text-[22px] sm:text-[30px] lg:text-[40px] font-extrabold tracking-[-0.05em] text-brand-blue">
           in many different Industries:
         </p>
-        <p className="mt-4 sm:mt-6 text-[clamp(14px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[632px]">
+        <p className="mt-4 sm:mt-6 text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[632px]">
           {LOREM}
         </p>
       </div>
@@ -410,7 +239,7 @@ const VideoIntro = () => (
         Take a look at some of our video work...
       </h2>
       <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[610px_1fr] items-end">
-        <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
+        <p className="text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
           {LOREM}
         </p>
         <div className="flex justify-start lg:justify-end lg:pr-12">
@@ -460,16 +289,17 @@ const VideoProduction = () => {
 
       {/* Draggable carousel container */}
       <div
+        role="presentation"
         ref={dragScroll.ref}
         onMouseDown={dragScroll.onMouseDown}
         onMouseLeave={dragScroll.onMouseLeave}
         onMouseUp={dragScroll.onMouseUp}
         onMouseMove={dragScroll.onMouseMove}
-        className="no-scrollbar mt-8 sm:mt-10 flex gap-4 sm:gap-6 lg:gap-[60px] overflow-x-auto snap-x snap-mandatory pl-[max(20px,calc((100vw-1440px)/2+20px))] cursor-grab active:cursor-grabbing select-none"
+        className="no-scrollbar mt-8 sm:mt-10 flex gap-4 sm:gap-6 lg:gap-[60px] overflow-x-auto snap-x snap-mandatory pl-[20px] sm:pl-[37px] lg:pl-[240px] cursor-grab active:cursor-grabbing select-none"
       >
         {videoCategories.map(v => (
           <div key={v.label} className="video-card w-[290px] sm:w-[460px] lg:w-[712px] shrink-0 snap-start">
-            <h3 className="text-[clamp(26px,4.2vw,80px)] font-extrabold tracking-[-0.05em] text-black mb-2 sm:mb-4">
+            <h3 className="text-[26px] sm:text-[48px] lg:text-[80px] font-extrabold tracking-[-0.05em] text-black mb-2 sm:mb-4">
               {v.label}
             </h3>
             <div className="relative group overflow-hidden rounded-[12px] bg-black">
@@ -487,7 +317,7 @@ const VideoProduction = () => {
         ))}
 
         <div className="shrink-0 snap-start flex items-end pb-8 sm:pb-16 lg:pb-[140px] pr-8">
-          <button className="text-[clamp(44px,6.25vw,120px)] font-extrabold tracking-[-0.05em] leading-[1.1em] underline text-black hover:text-brand-blue transition-colors text-left">
+          <button className="text-[44px] sm:text-[72px] lg:text-[120px] font-extrabold tracking-[-0.05em] leading-[1.1em] underline text-black hover:text-brand-blue transition-colors text-left">
             View<br />All.
           </button>
         </div>
@@ -517,10 +347,10 @@ const PhotoIntro = () => (
         We <span className="text-brand-yellow tracking-[-0.15em]">squeeze</span> quality into every pixel...
       </h2>
       <div className="mt-8 sm:mt-12 grid gap-6 sm:gap-8 lg:grid-cols-[610px_1fr]">
-        <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
+        <p className="text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
           {LOREM}
         </p>
-        <p className="text-[clamp(20px,2.1vw,40px)] font-extrabold leading-[1.15em] tracking-[-0.05em] text-white">
+        <p className="text-[20px] sm:text-[28px] lg:text-[40px] font-extrabold leading-[1.15em] tracking-[-0.05em] text-white">
           See some of our Photography work for different industries below.
         </p>
       </div>
@@ -573,7 +403,7 @@ const Photography = () => {
             <li key={c} className="border-b border-brand-slate/30">
               <button
                 onClick={() => handleCategoryChange(c)}
-                className={`w-full py-2.5 sm:py-3.5 text-left text-[clamp(18px,2.1vw,40px)] font-extrabold tracking-[-0.05em] transition-colors ${
+                className={`w-full py-2.5 sm:py-3.5 text-left text-[18px] sm:text-[28px] lg:text-[40px] font-extrabold tracking-[-0.05em] transition-colors ${
                   active === c
                     ? "text-brand-yellow"
                     : "text-brand-slate hover:text-brand-blue"
@@ -586,7 +416,7 @@ const Photography = () => {
         </ul>
 
         {/* Featured Photo Carousel */}
-        <div className="lg:mr-[calc((1440px-100vw)/2-40px)]">
+        <div className="lg:-mr-[240px]">
           <div className="relative overflow-hidden rounded-lg lg:rounded-l-lg lg:rounded-r-none shadow-md group">
             <img
               key={`${active}-${slideIndex}`}
@@ -645,7 +475,7 @@ const Services = () => {
     <section id="services" className="bg-brand-yellow">
       <div className="container-x py-16 sm:py-24 lg:py-32">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1.05em] tracking-[-0.05em] text-white">
+          <h2 className="text-[28px] sm:text-[48px] lg:text-[80px] font-extrabold leading-[1.05em] tracking-[-0.05em] text-white">
             {["Services", "Quality", "People"].map(w => (
               <span key={w} className="block mb-1 sm:mb-2">
                 {w} - <span className="text-brand-blue">Check<CheckMark /></span>
@@ -663,8 +493,8 @@ const Services = () => {
         <div className="mt-12 sm:mt-16 grid gap-8 lg:grid-cols-3 text-black">
           {values.map(v => (
             <div key={v.title}>
-              <h3 className="text-[clamp(18px,1.5vw,30px)] font-medium mb-3 sm:mb-4 tracking-[-0.05em]">{v.title}</h3>
-              <p className="text-[clamp(13px,1vw,20px)] leading-[1.4em] tracking-[-0.05em] text-black/90">{v.text}</p>
+              <h3 className="text-[18px] sm:text-[24px] lg:text-[30px] font-medium mb-3 sm:mb-4 tracking-[-0.05em]">{v.title}</h3>
+              <p className="text-[13px] sm:text-[17px] lg:text-[20px] leading-[1.4em] tracking-[-0.05em] text-black/90">{v.text}</p>
             </div>
           ))}
         </div>
@@ -717,7 +547,7 @@ const Team = () => {
 
   return (
     <section id="about" className="container-x py-14 sm:py-20 lg:py-28">
-      <h2 className="text-[clamp(22px,2.1vw,40px)] font-extrabold tracking-[-0.05em] text-brand-slate mb-6 sm:mb-8">
+      <h2 className="text-[22px] sm:text-[30px] lg:text-[40px] font-extrabold tracking-[-0.05em] text-brand-slate mb-6 sm:mb-8">
         Meet the Team
       </h2>
 
@@ -737,7 +567,7 @@ const Team = () => {
                 <button
                   key={t.first}
                   onClick={() => setSel(i)}
-                  className={`rounded-[12px] px-3.5 sm:px-5 py-1.5 sm:py-2 text-[clamp(13px,1vw,20px)] font-medium tracking-[-0.05em] min-w-[80px] sm:min-w-[103px] transition-colors ${
+                  className={`rounded-[12px] px-3.5 sm:px-5 py-1.5 sm:py-2 text-[13px] sm:text-[17px] lg:text-[20px] font-medium tracking-[-0.05em] min-w-[80px] sm:min-w-[103px] transition-colors ${
                     i === sel
                       ? "bg-brand-yellow text-white font-bold"
                       : "text-brand-slate hover:bg-gray-200"
@@ -752,7 +582,7 @@ const Team = () => {
                 <button
                   key={t.first}
                   onClick={() => setSel(i + 3)}
-                  className={`rounded-[12px] px-3.5 sm:px-5 py-1.5 sm:py-2 text-[clamp(13px,1vw,20px)] font-medium tracking-[-0.05em] min-w-[80px] sm:min-w-[103px] transition-colors ${
+                  className={`rounded-[12px] px-3.5 sm:px-5 py-1.5 sm:py-2 text-[13px] sm:text-[17px] lg:text-[20px] font-medium tracking-[-0.05em] min-w-[80px] sm:min-w-[103px] transition-colors ${
                     i + 3 === sel
                       ? "bg-brand-yellow text-white font-bold"
                       : "text-brand-slate hover:bg-gray-200"
@@ -764,20 +594,20 @@ const Team = () => {
             </div>
           </div>
 
-          <h3 className={`text-[clamp(32px,4.2vw,80px)] font-extrabold tracking-[-0.05em] ${m.nameColor} leading-[1.05em]`}>
+          <h3 className={`text-[32px] sm:text-[52px] lg:text-[80px] font-extrabold tracking-[-0.05em] ${m.nameColor} leading-[1.05em]`}>
             {m.first}{" "}
-            <span className={`text-[clamp(20px,2.1vw,40px)] ${m.lastColor}`}>{m.last}</span>
+            <span className={`text-[20px] sm:text-[28px] lg:text-[40px] ${m.lastColor}`}>{m.last}</span>
           </h3>
 
           <div className="mt-4 sm:mt-5 flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-1.5 sm:gap-y-2">
             {m.roles.map(r => (
-              <span key={r} className={`text-[clamp(13px,1vw,20px)] font-extrabold ${m.rolesColor} tracking-[-0.05em]`}>
+              <span key={r} className={`text-[13px] sm:text-[17px] lg:text-[20px] font-extrabold ${m.rolesColor} tracking-[-0.05em]`}>
                 {r}
               </span>
             ))}
           </div>
 
-          <p className="mt-6 sm:mt-8 text-[clamp(13px,1vw,20px)] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[579px]">
+          <p className="mt-6 sm:mt-8 text-[13px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[579px]">
             {LOREM}
           </p>
 
@@ -836,7 +666,7 @@ const Reviews = () => {
     <section className="py-14 sm:py-20 lg:py-28">
       <div className="container-x grid gap-8 sm:gap-10 lg:grid-cols-[1fr_667px] lg:items-start">
         <div>
-          <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1.1em] tracking-[-0.05em]">
+          <h2 className="text-[28px] sm:text-[52px] lg:text-[80px] font-extrabold leading-[1.1em] tracking-[-0.05em]">
             <span className="text-brand-slate">Go behind the scenes of our </span>
             <a
               href="https://www.google.com/maps/place/Pocket+Creatives"
@@ -850,7 +680,7 @@ const Reviews = () => {
           </h2>
           <div className="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
             <GoogleG />
-            <span className="text-[clamp(16px,1.5vw,30px)] font-extrabold tracking-[-0.05em] text-brand-slate">
+            <span className="text-[16px] sm:text-[24px] lg:text-[30px] font-extrabold tracking-[-0.05em] text-brand-slate">
               Based on<br />88 reviews
             </span>
           </div>
@@ -866,12 +696,13 @@ const Reviews = () => {
 
       {/* Draggable Reviews Carousel matching Figma & prototype video */}
       <div
+        role="presentation"
         ref={reviewsDrag.ref}
         onMouseDown={reviewsDrag.onMouseDown}
         onMouseLeave={reviewsDrag.onMouseLeave}
         onMouseUp={reviewsDrag.onMouseUp}
         onMouseMove={reviewsDrag.onMouseMove}
-        className="no-scrollbar mt-8 sm:mt-12 flex gap-4 sm:gap-6 overflow-x-auto pl-[max(20px,calc((100vw-1440px)/2+20px))] cursor-grab active:cursor-grabbing select-none"
+        className="no-scrollbar mt-8 sm:mt-12 flex gap-4 sm:gap-6 overflow-x-auto pl-[20px] sm:pl-[37px] lg:pl-[240px] cursor-grab active:cursor-grabbing select-none"
       >
         {reviews.map(r => (
           <div key={r.name} className="w-[280px] sm:w-[357px] shrink-0 rounded-[24px] sm:rounded-[32px] bg-[#E6E6E6] p-2.5 sm:p-3 shadow-sm">
@@ -901,26 +732,26 @@ const Pricing = () => {
   return (
     <section id="pricing" className="container-x py-16 sm:py-24 lg:py-32">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 sm:gap-8">
-        <h2 className="text-[clamp(28px,4.2vw,80px)] font-extrabold leading-[1em] tracking-[-0.05em]">
+        <h2 className="text-[28px] sm:text-[52px] lg:text-[80px] font-extrabold leading-[1em] tracking-[-0.05em]">
           <span className="text-brand-yellow">We value</span>{" "}
           <span className="text-brand-blue">transparency</span>,<br />
           <span className="text-brand-slate">so let's talk about pricing.</span>
         </h2>
         <button
           onClick={() => setIsOpen(true)}
-          className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[clamp(16px,1.5vw,30px)] font-medium text-black hover:brightness-105 transition self-start sm:self-auto shadow-btn"
+          className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[16px] sm:text-[24px] lg:text-[30px] font-medium text-black hover:brightness-105 transition self-start sm:self-auto shadow-btn"
           style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
         >
           View Pricing
         </button>
       </div>
 
-      <p className="mt-8 sm:mt-12 text-[clamp(18px,2.1vw,40px)] font-medium leading-[1.2em] tracking-[-0.05em] text-brand-slate max-w-[708px]">
+      <p className="mt-8 sm:mt-12 text-[18px] sm:text-[28px] lg:text-[40px] font-medium leading-[1.2em] tracking-[-0.05em] text-brand-slate max-w-[708px]">
         Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare.
       </p>
 
       <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[1fr_560px] lg:items-center">
-        <p className="text-[clamp(14px,1vw,20px)] font-medium leading-[1.8em] tracking-[-0.05em] text-brand-slate max-w-[701px]">
+        <p className="text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.8em] tracking-[-0.05em] text-brand-slate max-w-[701px]">
           {LOREM}
         </p>
 
@@ -964,7 +795,7 @@ const IndexPage = () => {
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
-      <Layout>
+      <Layout active="home" onContactClick={() => setIsOpen(true)}>
         <ContactModal />
         <Hero />
         <Partners />
