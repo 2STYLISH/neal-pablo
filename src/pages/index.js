@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Link } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
@@ -727,8 +728,6 @@ const Reviews = () => {
    ================================================================ */
 
 const Pricing = () => {
-  const { setIsOpen } = React.useContext(ModalContext)
-
   return (
     <section id="pricing" className="container-x py-16 sm:py-24 lg:py-32">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 sm:gap-8">
@@ -737,13 +736,13 @@ const Pricing = () => {
           <span className="text-brand-blue">transparency</span>,<br />
           <span className="text-brand-slate">so let's talk about pricing.</span>
         </h2>
-        <button
-          onClick={() => setIsOpen(true)}
+        <Link
+          to="/pricing"
           className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[16px] sm:text-[24px] lg:text-[30px] font-medium text-black hover:brightness-105 transition self-start sm:self-auto shadow-btn"
           style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
         >
           View Pricing
-        </button>
+        </Link>
       </div>
 
       <p className="mt-8 sm:mt-12 text-[18px] sm:text-[28px] lg:text-[40px] font-medium leading-[1.2em] tracking-[-0.05em] text-brand-slate max-w-[708px]">

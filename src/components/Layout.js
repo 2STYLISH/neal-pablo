@@ -41,24 +41,23 @@ export const Nav = ({ active = "home", onContactClick }) => {
             <Link to="/works" className={navItemClass("works")}>
               Works
             </Link>
-            <Link to="/#services" className={navItemClass("services")}>
+            <Link to="/services" className={navItemClass("services")}>
               Services
             </Link>
-            <Link to="/#pricing" className={navItemClass("pricing")}>
+            <Link to="/pricing" className={navItemClass("pricing")}>
               Pricing
             </Link>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 lg:gap-[32px]">
-            <button
-              onClick={onContactClick || (() => {
-                const el = document.getElementById("contact");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              })}
-              className="inline-flex h-[34px] items-center justify-center rounded-[16px] bg-[#32D6FF] px-4 text-xs sm:text-[18px] font-medium text-black whitespace-nowrap hover:brightness-105 transition"
+            <Link
+              to="/contact"
+              className={`inline-flex h-[34px] items-center justify-center rounded-[16px] ${
+                active === "contact" ? "bg-brand-yellow font-semibold" : "bg-[#32D6FF] font-medium"
+              } px-4 text-xs sm:text-[18px] text-black whitespace-nowrap hover:brightness-105 transition`}
             >
               Contact
-            </button>
+            </Link>
             <a
               href="https://wa.me/"
               target="_blank"
@@ -122,32 +121,33 @@ export const Nav = ({ active = "home", onContactClick }) => {
                 Works
               </Link>
               <Link
-                to="/#services"
+                to="/services"
                 onClick={() => setMobileMenuOpen(false)}
                 className={mobileItemClass("services")}
               >
                 Services
               </Link>
               <Link
-                to="/#pricing"
+                to="/pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className={mobileItemClass("pricing")}
               >
                 Pricing
               </Link>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  if (onContactClick) onContactClick();
-                  else {
-                    const el = document.getElementById("contact");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }
-                }}
+              <Link
+                to="/how-we-work"
+                onClick={() => setMobileMenuOpen(false)}
+                className={mobileItemClass("how-we-work")}
+              >
+                How We Work
+              </Link>
+              <Link
+                to="/contact"
+                onClick={() => setMobileMenuOpen(false)}
                 className="rounded-xl bg-[#32D6FF] px-4 py-2.5 text-black text-left font-bold"
               >
                 Contact Us
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -160,10 +160,10 @@ const quickLinks = [
   { name: "HOME", href: "/" },
   { name: "ABOUT", href: "/about" },
   { name: "WORKS", href: "/works" },
-  { name: "SERVICES", href: "/#services" },
-  { name: "PRICING", href: "/#pricing" },
-  { name: "CONTACT", href: "#contact" },
-  { name: "BLOGS", href: "/#blogs" },
+  { name: "SERVICES", href: "/services" },
+  { name: "PRICING", href: "/pricing" },
+  { name: "CONTACT", href: "/contact" },
+  { name: "BLOGS", href: "/how-we-work" },
 ]
 
 const socials = [

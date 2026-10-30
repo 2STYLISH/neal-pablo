@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Link } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
@@ -342,7 +343,11 @@ const BehindScenes = () => (
   <section className="mx-auto w-full max-w-[1563px] px-5 sm:px-9 lg:px-0 pt-16 sm:pt-24 lg:pt-[113px] pb-16 sm:pb-24 lg:pb-[113px]">
     <p className="max-w-[1411px] text-[22px] sm:text-[30px] lg:text-[40px] font-normal leading-[1.2] tracking-[-0.05em] text-black lg:pl-[69px]">
       Want to know a bit more about who we work with, and <b className="font-bold">what makes a ‘Pocket Person’?</b> Go
-      behind the scenes to see how we work in action…
+      behind the scenes to see{" "}
+      <Link to="/how-we-work" className="underline hover:text-brand-blue transition">
+        how we work
+      </Link>{" "}
+      in action…
     </p>
     <div className="mt-8 sm:mt-14 lg:mt-[84px] bg-white">
       <img src={bts} alt="Behind the scenes at Pocket Creatives" className="w-full lg:w-[1563px] lg:h-[738px] aspect-[1563/738] object-cover" />
