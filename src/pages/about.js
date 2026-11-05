@@ -3,6 +3,7 @@ import { Link } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
+import SoundVideo from "../components/SoundVideo"
 
 import heroVideo from "../images/about/hero-video.png"
 import pocketLogoWide from "../images/about/pocket-logo-wide.png"
@@ -48,11 +49,13 @@ const Hero = () => {
 
         <div className="mt-8 sm:mt-12 lg:mt-[60px] grid gap-8 lg:grid-cols-[598px_517px] lg:justify-between items-start">
           <div>
-            <img
-              src={heroVideo}
-              alt="Pocket Creatives at work"
-              className="w-full lg:w-[598px] lg:h-[352px] aspect-[598/352] object-cover"
-            />
+            <div className="w-full lg:w-[598px] lg:h-[352px] aspect-[598/352] overflow-hidden bg-black">
+              <SoundVideo
+                src="/videos/showreel.mp4"
+                poster={heroVideo}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <p className="mt-0 text-[13px] sm:text-[16px] leading-[32px] font-medium tracking-[-0.05em] text-brand-slate">
               *Click on Video to toggle sound
             </p>
@@ -136,60 +139,124 @@ const Intro = () => {
 /* ================= 3. OUR WORKS (Click Carousel #2172:4493) ================= */
 const works = [
   {
-    img: carSoapGlory,
+    img: "/videos/soap-glory-comp.gif",
+    poster: carSoapGlory,
     tag: "Soap And Glory",
     title: "People & Portrait Photography",
     text: "Expertly delivered product photography and product videos. From simple pack shots to creative product photography and engaging product video, high quality imagery is designed to entice the viewer and convert to a customer.",
   },
   {
     img: carHairo,
+    video: "/videos/hairo-advert.mp4",
     tag: "HairO Brand Advert",
     title: "Beauty Video Production",
     text: "Expertly crafted cosmetics, personal care and beauty video and beauty photography. Creating both usage and creative product content, high quality photography shows your beauty brand in its best light.",
   },
   {
     img: carSmiles,
+    video: "/videos/beauty-showreel.mp4",
     tag: "Smiles Alliance",
     title: "People & Portrait Photography",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras gravida metus eget orci iaculis, eu ornare augue auctor. Donec at sagittis magna.",
   },
 ]
 
-const WorkCard = ({ item, big, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`relative shrink-0 overflow-hidden text-left transition-all duration-500 ${
-      big
-        ? "w-[280px] sm:w-[340px] lg:w-[430px] aspect-[430/819] z-10"
-        : "w-[220px] sm:w-[270px] lg:w-[349px] aspect-[349/706] opacity-95 hover:opacity-100"
-    }`}
-  >
-    <img src={item.img} alt={item.tag} className="absolute inset-0 h-full w-full object-cover" />
-    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-yellow via-brand-yellow/95 to-transparent px-4 sm:px-6 pb-5 sm:pb-7 pt-20">
-      <span
-        className={`inline-block bg-brand-blue px-2 py-0.5 font-bold tracking-[-0.04em] text-white ${
-          big ? "text-[15px] sm:text-[20px]" : "text-[11px] sm:text-[14px]"
-        }`}
+const WorkCard = ({ item, big, onClick }) => {
+  const videoRef = React.useRef(null)
+  const [muted, setMuted] = React.useState(true)
+
+  const handleCardClick = e => {
+    if (big && item.video && videoRef.current) {
+      e.stopPropagation()
+      const nextMuted = !videoRef.current.muted
+      videoRef.current.muted = nextMuted
+      setMuted(nextMuted)
+      return
+    }
+    onClick()
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          handleCardClick(e)
+        }
+      }}
+      className={`relative shrink-0 overflow-hidden text-left transition-all duration-500 cursor-pointer ${
+        big
+          ? "w-[280px] sm:w-[340px] lg:w-[430px] aspect-[430/819] z-10"
+          : "w-[220px] sm:w-[270px] lg:w-[349px] aspect-[349/706] opacity-95 hover:opacity-100"
+      }`}
+    >
+      {item.video ? (
+        <video
+          ref={videoRef}
+          src={item.video}
+          poster={item.img}
+          autoPlay
+          loop
+          muted={muted}
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <img src={item.img} alt={item.tag} className="absolute inset-0 h-full w-full object-cover" />
+      )}
+      {big && item.video && (
+        <span
+          className="pointer-events-none absolute top-3 right-3 z-20 inline-flex items-center justify-center w-8 h-8 rounded-full bg-black/55 text-white backdrop-blur-sm"
+          title={muted ? "Click to unmute" : "Click to mute"}
+        >
+          {muted ? (
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+            </svg>
+          )}
+        </span>
+      )}
+      <div
+        onClick={e => {
+          if (big) {
+            e.stopPropagation()
+            onClick()
+          }
+        }}
+        className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-yellow via-brand-yellow/95 to-transparent px-4 sm:px-6 pb-5 sm:pb-7 pt-20"
       >
-        {item.tag}
-      </span>
-      <p
-        className={`mt-1.5 font-semibold tracking-[-0.04em] text-black ${
-          big ? "text-[15px] sm:text-[20px]" : "text-[11px] sm:text-[14px]"
-        }`}
-      >
-        {item.title}
-      </p>
-      <p
-        className={`mt-2 tracking-[-0.04em] text-black leading-[1.15] ${
-          big ? "text-[13px] sm:text-[18px] lg:text-[20px] font-bold" : "text-[10px] sm:text-[13px] lg:text-[14px] font-normal text-black/85"
-        }`}
-      >
-        {item.text}
-      </p>
+        <span
+          className={`inline-block bg-brand-blue px-2 py-0.5 font-bold tracking-[-0.04em] text-white ${
+            big ? "text-[15px] sm:text-[20px]" : "text-[11px] sm:text-[14px]"
+          }`}
+        >
+          {item.tag}
+        </span>
+        <p
+          className={`mt-1.5 font-semibold tracking-[-0.04em] text-black ${
+            big ? "text-[15px] sm:text-[20px]" : "text-[11px] sm:text-[14px]"
+          }`}
+        >
+          {item.title}
+        </p>
+        <p
+          className={`mt-2 tracking-[-0.04em] text-black leading-[1.15] ${
+            big ? "text-[13px] sm:text-[18px] lg:text-[20px] font-bold" : "text-[10px] sm:text-[13px] lg:text-[14px] font-normal text-black/85"
+          }`}
+        >
+          {item.text}
+        </p>
+      </div>
     </div>
-  </button>
-)
+  )
+}
 
 const OurWorks = () => {
   const [active, setActive] = React.useState(1)
@@ -237,7 +304,10 @@ const Companies = () => (
     <div className="grid gap-8 lg:grid-cols-[1fr_755px] items-start">
       <div className="container-x lg:max-w-none lg:pl-[241px] lg:pr-8">
         <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-normal leading-[1.0] tracking-[-0.05em] text-brand-slate">
-          We’re a <b className="font-extrabold text-brand-blue">video production</b>
+          We’re a{" "}
+          <Link to="/videography-services" className="font-extrabold text-brand-blue hover:underline">
+            video production
+          </Link>
           <br />
           company
         </h3>
@@ -270,7 +340,11 @@ const Companies = () => (
       />
       <div className="order-1 lg:order-2 container-x lg:max-w-none lg:pl-[150px] lg:pt-[118px] lg:pr-[190px]">
         <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-normal leading-[1.0] tracking-[-0.05em] text-brand-slate">
-          and a <b className="font-extrabold text-brand-blue">photography company too</b>…
+          and a{" "}
+          <Link to="/photography-services" className="font-extrabold text-brand-blue hover:underline">
+            photography company too
+          </Link>
+          …
         </h3>
         <div className="mt-8 sm:mt-12 lg:mt-[68px] lg:w-[816px] space-y-6 text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] tracking-[-0.05em] text-brand-slate text-justify">
           <p>
@@ -349,8 +423,12 @@ const BehindScenes = () => (
       </Link>{" "}
       in action…
     </p>
-    <div className="mt-8 sm:mt-14 lg:mt-[84px] bg-white">
-      <img src={bts} alt="Behind the scenes at Pocket Creatives" className="w-full lg:w-[1563px] lg:h-[738px] aspect-[1563/738] object-cover" />
+    <div className="mt-8 sm:mt-14 lg:mt-[84px] bg-black overflow-hidden">
+      <SoundVideo
+        src="/videos/ayumi-bts.mp4"
+        poster={bts}
+        className="w-full lg:w-[1563px] lg:h-[738px] aspect-[1563/738] object-cover"
+      />
     </div>
     <p className="mt-0 text-[13px] sm:text-[16px] leading-[32px] font-medium tracking-[-0.05em] text-brand-slate">
       *Click on Video to toggle sound
@@ -398,15 +476,15 @@ const WhoWeWorkWith = () => (
               <img src={src} alt={alt} className="max-h-[80%] max-w-[85%] object-contain" />
             </div>
           ))}
-          <a
-            href="#contact"
-            className="col-start-3 flex aspect-[2/1] lg:h-[100px] items-center justify-end rounded-[12px] sm:rounded-[16px] bg-brand-yellow p-2 sm:p-4 text-right text-[11px] sm:text-[16px] lg:text-[20px] font-medium leading-[1.2] tracking-normal text-black"
+          <Link
+            to="/video-testimonials"
+            className="col-start-3 flex aspect-[2/1] lg:h-[100px] items-center justify-end rounded-[12px] sm:rounded-[16px] bg-brand-yellow p-2 sm:p-4 text-right text-[11px] sm:text-[16px] lg:text-[20px] font-medium leading-[1.2] tracking-normal text-black hover:brightness-105 transition"
             style={{ boxShadow: "0px 4px 4px rgba(0,0,0,0.12)" }}
           >
             <span>
               You can see what they say about us <span className="underline">here</span>
             </span>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -43,20 +43,29 @@ const categories = [
 
 // Widths from Figma at 450px height: 800 / 300 / 450
 const reel = [
-  { img: reelSoapGlory, name: "Soap & Glory", type: "Photo Comp", w: "aspect-square" },
-  { img: reelHairo, name: "HairO Brand Advert", type: "Video", w: "aspect-[16/9]" },
+  { img: "/videos/soap-glory-comp.gif", poster: reelSoapGlory, name: "Soap & Glory", type: "Photo Comp", w: "aspect-square" },
+  { img: reelHairo, video: "/videos/hairo-advert.mp4", name: "HairO Brand Advert", type: "Video", w: "aspect-[16/9]" },
   { img: reelNursem, name: "Nursem", type: "Photo", w: "aspect-[2/3]" },
 ]
 
 const videos = [
-  [vid01, "Client 1.1"], [vid02, "Client 1.2"], [vid03, "Client 2"], [vid04, "Client 3.1"],
-  [vid05, "Client 3.2"], [vid06, "Client 3.3"], [vid07, "Client 4"], [vid08, "Client 5"],
-  [vid09, "Client 6.1"], [vid10, "Client 6.2"], [vid11, "Client 7"], [vid12, "Client 8"],
+  [vid01, "Client 1.1", "/videos/hairo-advert.mp4"],
+  [vid02, "Client 1.2", "/videos/beauty-showreel.mp4"],
+  [vid03, "Client 2", "/videos/james-read-tan.mp4"],
+  [vid04, "Client 3.1", "/videos/water-texture-bts.mp4"],
+  [vid05, "Client 3.2", "/videos/ayumi-bts.mp4"],
+  [vid06, "Client 3.3", "/videos/healthy-mummy-bts.mp4"],
+  [vid07, "Client 4", "/videos/food-showreel.mp4"],
+  [vid08, "Client 5", "/videos/product-masabi.mp4"],
+  [vid09, "Client 6.1", "/videos/events-showreel.mp4"],
+  [vid10, "Client 6.2", "/videos/crowdfunding-hygie.mp4"],
+  [vid11, "Client 7", "/videos/tv-california-walnuts.mp4"],
+  [vid12, "Client 8", "/videos/client-film.mp4"],
 ]
 
 // Figma groups photos in pairs: 3 pairs per row
 const photos = [
-  [photo01, "Hover ex. here"], [photo02, "Client 2"], [photo03, "Client 3"], [photo04, "Client 4"],
+  ["/videos/figma-gif-1.gif", "Hover ex. here"], [photo02, "Client 2"], [photo03, "Client 3"], [photo04, "Client 4"],
   [photo05, "Client 5"], [photo06, "Client 6"], [photo07, "Client 7"], [photo08, "Client 8"],
   [photo09, "Client 9"], [photo10, "Client 10"], [photo11, "Client 11"], [photo12, "Client 12"],
 ]
@@ -95,9 +104,21 @@ const GalleryReel = ({ playing, onOpen }) => {
       className="no-scrollbar flex gap-5 sm:gap-10 lg:gap-[80px] overflow-x-auto cursor-grab active:cursor-grabbing select-none"
     >
       {items.map((it, i) => (
-        <button key={i} onClick={() => onOpen(it.img)} className="shrink-0 text-left">
-          <div className={`h-[220px] sm:h-[340px] lg:h-[450px] ${it.w} overflow-hidden`}>
-            <img src={it.img} alt={it.name} draggable="false" className="h-full w-full object-cover pointer-events-none" />
+        <button key={i} onClick={() => onOpen(it.video || it.img)} className="shrink-0 text-left">
+          <div className={`h-[220px] sm:h-[340px] lg:h-[450px] ${it.w} overflow-hidden bg-black`}>
+            {it.video ? (
+              <video
+                src={it.video}
+                poster={it.img}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="h-full w-full object-cover pointer-events-none"
+              />
+            ) : (
+              <img src={it.img} alt={it.name} draggable="false" className="h-full w-full object-cover pointer-events-none" />
+            )}
           </div>
           <div className="mt-2 flex items-baseline justify-between gap-4 text-brand-slate tracking-[-0.05em]">
             <span className="text-[16px] sm:text-[20px] font-medium">{it.name}</span>
@@ -118,11 +139,22 @@ const Lightbox = ({ src, onClose }) => {
     return () => window.removeEventListener("keydown", h)
   }, [src, onClose])
   if (!src) return null
+  const isVideo = typeof src === "string" && src.endsWith(".mp4")
   return (
     <div role="presentation" className="modal-overlay fixed inset-0 z-[110] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
       <button onClick={onClose} className="absolute top-5 right-6 text-white text-3xl leading-none" aria-label="Close">×</button>
       <div role="presentation" onClick={e => e.stopPropagation()}>
-        <img src={src} alt="" className="modal-card max-h-[88vh] max-w-full object-contain" />
+        {isVideo ? (
+          <video
+            src={src}
+            controls
+            autoPlay
+            playsInline
+            className="modal-card max-h-[88vh] max-w-full object-contain bg-black"
+          />
+        ) : (
+          <img src={src} alt="" className="modal-card max-h-[88vh] max-w-full object-contain" />
+        )}
       </div>
     </div>
   )
@@ -222,12 +254,25 @@ const WorksPage = () => {
               </p>
             </div>
             <div className="mt-4 lg:mt-[32px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[28px] gap-y-6 sm:gap-y-[32px]">
-              {videos.map(([src, label]) => (
-                <button key={label} onClick={() => setLightbox(src)} className="group text-left">
-                  <div className="relative aspect-[320/157] overflow-hidden">
-                    <img src={src} alt={label} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-                    <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20">
-                      <svg viewBox="0 0 24 24" className="h-12 w-12 text-white" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+              {videos.map(([src, label, videoSrc]) => (
+                <button key={label} onClick={() => setLightbox(videoSrc)} className="group text-left">
+                  <div className="relative aspect-[320/157] overflow-hidden bg-black">
+                    <video
+                      src={videoSrc}
+                      poster={src}
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      onMouseEnter={e => e.currentTarget.play().catch(() => {})}
+                      onMouseLeave={e => {
+                        e.currentTarget.pause()
+                        e.currentTarget.currentTime = 0
+                      }}
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition bg-black/20">
+                      <svg viewBox="0 0 24 24" className="h-12 w-12 text-white drop-shadow" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                     </span>
                   </div>
                   <p className="mt-2.5 text-[16px] sm:text-[20px] leading-none font-medium tracking-[-0.05em] text-brand-slate">

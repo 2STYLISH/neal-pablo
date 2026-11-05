@@ -128,6 +128,41 @@ export const Nav = ({ active = "home", onContactClick }) => {
                 Services
               </Link>
               <Link
+                to="/photography-services"
+                onClick={() => setMobileMenuOpen(false)}
+                className={mobileItemClass("photography-services")}
+              >
+                Photography Services
+              </Link>
+              <Link
+                to="/videography-services"
+                onClick={() => setMobileMenuOpen(false)}
+                className={mobileItemClass("videography-services")}
+              >
+                Videography Services
+              </Link>
+              <Link
+                to="/creative-training-courses"
+                onClick={() => setMobileMenuOpen(false)}
+                className={mobileItemClass("creative-training-courses")}
+              >
+                Creative Training Courses
+              </Link>
+              <Link
+                to="/photography-testimonials"
+                onClick={() => setMobileMenuOpen(false)}
+                className={mobileItemClass("photography-testimonials")}
+              >
+                Photography Testimonials
+              </Link>
+              <Link
+                to="/video-testimonials"
+                onClick={() => setMobileMenuOpen(false)}
+                className={mobileItemClass("video-testimonials")}
+              >
+                Video Testimonials
+              </Link>
+              <Link
                 to="/pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className={mobileItemClass("pricing")}
@@ -163,7 +198,11 @@ const quickLinks = [
   { name: "SERVICES", href: "/services" },
   { name: "PRICING", href: "/pricing" },
   { name: "CONTACT", href: "/contact" },
-  { name: "BLOGS", href: "/how-we-work" },
+  { name: "BLOGS", href: "/blogs" },
+  { name: "PHOTOGRAPHY TESTIMONIALS", href: "/photography-testimonials" },
+  { name: "VIDEOGRAPHY TESTIMONIALS", href: "/video-testimonials" },
+  { name: "CREATIVE TRAINING COURSES", href: "/creative-training-courses" },
+  { name: "BLOG INNER TEMPLATE", href: "/blog-inner" },
 ]
 
 const socials = [

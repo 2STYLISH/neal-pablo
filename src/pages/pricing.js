@@ -1,6 +1,7 @@
 import * as React from "react"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
+import SoundVideo from "../components/SoundVideo"
 
 import heroVideoImg from "../images/pricing/hero-video.png"
 import mainVideoImg from "../images/pricing/main-video.png"
@@ -11,6 +12,24 @@ import poundBurstRight from "../images/pricing/pound-burst-right.png"
 const PricingPage = () => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [activeSlide, setActiveSlide] = React.useState("video")
+  const [mainPlaying, setMainPlaying] = React.useState(false)
+  const mainVideoRef = React.useRef(null)
+
+  const toggleMainVideo = () => {
+    const vid = mainVideoRef.current
+    if (!vid) return
+    if (vid.paused) {
+      vid.muted = false
+      vid.play().catch(() => {
+        vid.muted = true
+        vid.play().catch(() => {})
+      })
+      setMainPlaying(true)
+    } else {
+      vid.pause()
+      setMainPlaying(false)
+    }
+  }
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -60,13 +79,15 @@ const PricingPage = () => {
                 </div>
               </div>
 
-              {/* Right Video Image (#4436:2704, x:1185, y:188, w:456, h:643) */}
+              {/* Right Video (#4436:2704, x:1185, y:188, w:456, h:643) */}
               <div className="w-full sm:w-[400px] lg:w-[456px] lg:mt-[60px] shrink-0 lg:-ml-[308px]">
-                <img
-                  src={heroVideoImg}
-                  alt="Pocket Creatives outdoor billboard"
-                  className="w-full lg:w-[456px] h-auto lg:h-[643px] object-cover"
-                />
+                <div className="w-full lg:w-[456px] h-[480px] lg:h-[643px] overflow-hidden bg-black">
+                  <SoundVideo
+                    src="/videos/showreel.mp4"
+                    poster={heroVideoImg}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <p className="mt-2 text-right text-[14px] sm:text-[16px] font-medium leading-[32px] tracking-[-0.05em] text-brand-slate">
                   *Click on Video to toggle sound
                 </p>
@@ -98,23 +119,32 @@ const PricingPage = () => {
 
             {/* Large Video Player (#4845:5289, x:251, y:1470, w:1353, h:761) */}
             <div className="mt-10 sm:mt-14 lg:mt-[93px] lg:pl-[11px]">
-              <div className="relative w-full lg:w-[1353px] lg:h-[761px] overflow-hidden group cursor-pointer">
-                <img
-                  src={mainVideoImg}
-                  alt="Pricing overview video"
+              <div
+                className="relative w-full lg:w-[1353px] lg:h-[761px] overflow-hidden bg-black group cursor-pointer"
+                onClick={toggleMainVideo}
+              >
+                <video
+                  ref={mainVideoRef}
+                  src="/videos/james-read-tan.mp4"
+                  poster={mainVideoImg}
+                  loop
+                  playsInline
+                  onEnded={() => setMainPlaying(false)}
                   className="w-full h-full object-cover"
                 />
                 {/* Play Button Overlay (#4845:5294 & #4845:5295) */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-[110px] h-[110px] sm:w-[180px] sm:h-[180px] lg:w-[250px] lg:h-[250px] rounded-full bg-[#D9D9D9]/90 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <svg
-                      viewBox="0 0 100 100"
-                      className="w-[48px] h-[48px] sm:w-[80px] sm:h-[80px] lg:w-[110px] lg:h-[110px] translate-x-2"
-                    >
-                      <polygon points="22,12 88,50 22,88" fill="#FF0000" />
-                    </svg>
+                {!mainPlaying && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-[110px] h-[110px] sm:w-[180px] sm:h-[180px] lg:w-[250px] lg:h-[250px] rounded-full bg-[#D9D9D9]/90 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <svg
+                        viewBox="0 0 100 100"
+                        className="w-[48px] h-[48px] sm:w-[80px] sm:h-[80px] lg:w-[110px] lg:h-[110px] translate-x-2"
+                      >
+                        <polygon points="22,12 88,50 22,88" fill="#FF0000" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

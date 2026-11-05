@@ -3,6 +3,7 @@ import { Link } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
+import SoundVideo from "../components/SoundVideo"
 
 import logo from "../images/logo.png"
 import heroImg from "../images/hero.png"
@@ -141,10 +142,10 @@ const Hero = () => (
       *Click on Video to toggle sound
     </p>
     <div className="mt-2 relative overflow-hidden rounded-[12px] bg-black group cursor-pointer shadow-lg">
-      <img
-        src={heroImg}
-        alt="Pocket Creatives showreel"
-        className="w-full object-cover transition duration-300 group-hover:scale-[1.01]"
+      <SoundVideo
+        src="/videos/showreel.mp4"
+        poster={heroImg}
+        className="w-full aspect-video object-cover transition duration-300 group-hover:scale-[1.01]"
       />
     </div>
   </section>
@@ -260,16 +261,16 @@ const VideoIntro = () => (
    ================================================================ */
 
 const videoCategories = [
-  { label: "Beauty", img: vidBeauty },
-  { label: "Food&Drink", img: vidFood },
-  { label: "Product", img: vidProduct },
-  { label: "Events", img: vidEvents },
-  { label: "Crowdfunding", img: vidCrowdfunding },
-  { label: "Tv Ads", img: vidTv },
-  { label: "HR", img: vidBeauty },
-  { label: "Education", img: vidFood },
-  { label: "Explainers", img: vidProduct },
-  { label: "Social First", img: vidEvents },
+  { label: "Beauty", img: vidBeauty, video: "/videos/beauty-showreel.mp4" },
+  { label: "Food&Drink", img: vidFood, video: "/videos/food-showreel.mp4" },
+  { label: "Product", img: vidProduct, video: "/videos/product-masabi.mp4" },
+  { label: "Events", img: vidEvents, video: "/videos/events-showreel.mp4" },
+  { label: "Crowdfunding", img: vidCrowdfunding, video: "/videos/crowdfunding-hygie.mp4" },
+  { label: "Tv Ads", img: vidTv, video: "/videos/tv-california-walnuts.mp4" },
+  { label: "HR", img: vidBeauty, video: "/videos/client-film.mp4" },
+  { label: "Education", img: vidFood, video: "/videos/water-texture-bts.mp4" },
+  { label: "Explainers", img: vidProduct, video: "/videos/james-read-tan.mp4" },
+  { label: "Social First", img: vidEvents, video: "/videos/hairo-advert.mp4" },
 ]
 
 const VideoProduction = () => {
@@ -303,16 +304,12 @@ const VideoProduction = () => {
             <h3 className="text-[26px] sm:text-[48px] lg:text-[80px] font-extrabold tracking-[-0.05em] text-black mb-2 sm:mb-4">
               {v.label}
             </h3>
-            <div className="relative group overflow-hidden rounded-[12px] bg-black">
-              <img
-                src={v.img}
-                alt={v.label}
-                draggable="false"
-                className="w-full aspect-video object-cover transition duration-300 group-hover:scale-105 pointer-events-none"
+            <div className="relative group overflow-hidden rounded-[12px] bg-black aspect-video">
+              <SoundVideo
+                src={v.video}
+                poster={v.img}
+                className="w-full h-full aspect-video object-cover transition duration-300 group-hover:scale-105"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition">
-                <PlayIcon />
-              </div>
             </div>
           </div>
         ))}
@@ -691,7 +688,13 @@ const Reviews = () => {
           <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em] mb-2">
             *Click on Video to toggle sound
           </p>
-          <img src={bts} alt="Behind the scenes" className="w-full rounded-[12px] shadow-md" />
+          <div className="w-full overflow-hidden rounded-[12px] shadow-md bg-black">
+            <SoundVideo
+              src="/videos/ayumi-bts.mp4"
+              poster={bts}
+              className="w-full aspect-video object-cover"
+            />
+          </div>
         </div>
       </div>
 

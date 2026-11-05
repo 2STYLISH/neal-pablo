@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Link } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
@@ -176,24 +177,24 @@ const ServicesPage = () => {
                   <p className="text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-black">
                     Go to...
                   </p>
-                  <a
-                    href="#video-process"
+                  <Link
+                    to="/videography-services"
                     className="flex items-center gap-[13px] text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-white hover:opacity-80 transition"
                   >
                     <span className="text-black">
                       <GoToArrow />
                     </span>
                     Videography
-                  </a>
-                  <a
-                    href="#photography"
+                  </Link>
+                  <Link
+                    to="/photography-services"
                     className="flex items-center gap-[13px] text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-white hover:opacity-80 transition"
                   >
                     <span className="text-black">
                       <GoToArrow />
                     </span>
                     Photography
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -228,15 +229,15 @@ const ServicesPage = () => {
                   <p className="text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-black">
                     Go to...
                   </p>
-                  <a
-                    href="#video-production"
+                  <Link
+                    to="/videography-services"
                     className="flex items-center gap-[13px] text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-white hover:opacity-80 transition"
                   >
                     <span className="text-black">
                       <GoToArrow />
                     </span>
                     Video Production
-                  </a>
+                  </Link>
                   <a
                     href="#the-whole-package"
                     className="flex items-center gap-[13px] text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-white hover:opacity-80 transition"
@@ -278,24 +279,24 @@ const ServicesPage = () => {
                     <p className="text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-black">
                       Go to...
                     </p>
-                    <a
-                      href="#video-production"
+                    <Link
+                      to="/videography-services"
                       className="flex items-center gap-[13px] text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-white hover:opacity-80 transition"
                     >
                       <span className="text-black">
                         <GoToArrow />
                       </span>
                       Video Production
-                    </a>
-                    <a
-                      href="#photography"
+                    </Link>
+                    <Link
+                      to="/photography-services"
                       className="flex items-center gap-[13px] text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-white hover:opacity-80 transition"
                     >
                       <span className="text-black">
                         <GoToArrow />
                       </span>
                       Photography
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
