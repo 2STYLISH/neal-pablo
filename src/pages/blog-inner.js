@@ -1,7 +1,12 @@
 import * as React from "react"
-import { Link } from "gatsby"
+import { Link, graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
+import {
+  extractHeadingsAndAddIds,
+  fetchLiveWpPosts,
+  normalizeWpPost,
+} from "../utils/wpClient"
 
 import innerHeroImg from "../images/blogs/inner-hero.png"
 import related1 from "../images/blogs/related-1.png"
@@ -13,38 +18,76 @@ import related6 from "../images/blogs/related-6.png"
 import related7 from "../images/blogs/related-7.png"
 import related8 from "../images/blogs/related-8.png"
 
-const relatedArticles = [
+const fallbackRelatedImages = [
+  related1,
+  related2,
+  related3,
+  related4,
+  related5,
+  related6,
+  related7,
+  related8,
+]
+
+const defaultRelatedArticles = [
   {
+    slug: "what-is-dp-in-video-production",
     image: related1,
     title: "What is DP in Video Production? Role & Importance Explained",
   },
   {
+    slug: "5-stages-of-video-production",
     image: related2,
     title: "What Are The 5 Stages of Video Production? (Essential Guide)",
   },
   {
+    slug: "crowdfunding-video-for-synergised-uk",
     image: related3,
     title: "Crowdfunding video for Synergised UK",
   },
   {
+    slug: "our-product-videographers-shoot-with-skinny-tan",
     image: related4,
     title: "Our Product Videographers Shoot With Skinny Tan",
   },
   {
+    slug: "beauty-product-photography-for-pony-revolution",
     image: related5,
     title: "Beauty Product Photography for Pony Revolution",
   },
   {
+    slug: "video-production-for-publishing",
     image: related6,
     title: "Video Production For Publishing",
   },
   {
+    slug: "photography-and-video-production-with-energy",
     image: related7,
     title: "Photography and video production with energy",
   },
   {
+    slug: "our-first-tv-ad-as-a-video-production-company",
     image: related8,
     title: "Our first TV ad as a Video Production Company",
+  },
+]
+
+const defaultTocLinks = [
+  {
+    id: "what-is-treatment",
+    text: "What is Treatment in Video Production?",
+  },
+  {
+    id: "different-types",
+    text: "Different Types of Video Treatments & Their Use Cases",
+  },
+  {
+    id: "treatment-vs-script",
+    text: "Treatment vs. Script vs. Storyboard – What’s the Difference?",
+  },
+  {
+    id: "why-important",
+    text: "Why is a Video Treatment Important?",
   },
 ]
 
@@ -62,10 +105,81 @@ const ThumbsUpIcon = ({ className = "w-[24px] h-[24px]" }) => (
   </svg>
 )
 
-const BlogInnerPage = () => {
+const BlogInnerPage = ({ data, pageContext, location }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [likes, setLikes] = React.useState(999)
   const [liked, setLiked] = React.useState(false)
+
+  const buildTimeNodes = data?.allWpPost?.nodes || []
+  const [wpNodes, setWpNodes] = React.useState(buildTimeNodes)
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpPosts()
+      .then(liveNodes => {
+        if (isMounted && Array.isArray(liveNodes) && liveNodes.length > 0) {
+          setWpNodes(liveNodes)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const requestedSlug = React.useMemo(() => {
+    if (pageContext?.slug) return pageContext.slug
+    if (typeof window !== "undefined" && location?.search) {
+      const params = new URLSearchParams(location.search)
+      return params.get("slug") || ""
+    }
+    return ""
+  }, [pageContext?.slug, location?.search])
+
+  const wpPosts = React.useMemo(
+    () =>
+      wpNodes.map((node, idx) =>
+        normalizeWpPost(node, idx, [innerHeroImg, ...fallbackRelatedImages])
+      ),
+    [wpNodes]
+  )
+
+  const activePost = React.useMemo(() => {
+    if (requestedSlug) {
+      const match = wpPosts.find(
+        p => p.slug?.toLowerCase() === requestedSlug.toLowerCase()
+      )
+      if (match) return match
+    }
+    if (pageContext?.post) {
+      return normalizeWpPost(pageContext.post, 0, [innerHeroImg])
+    }
+    if (!requestedSlug && wpPosts.length > 0) {
+      return wpPosts[0]
+    }
+    return null
+  }, [requestedSlug, wpPosts, pageContext?.post])
+
+  const { htmlWithIds, headings } = React.useMemo(
+    () => extractHeadingsAndAddIds(activePost?.content || ""),
+    [activePost?.content]
+  )
+
+  const tocLinks = headings.length > 0 ? headings : defaultTocLinks
+
+  const relatedArticles = React.useMemo(() => {
+    const otherWpPosts = wpPosts
+      .filter(p => p.slug !== activePost?.slug)
+      .map((p, idx) => ({
+        slug: p.slug,
+        image:
+          p.image && p.image !== innerHeroImg
+            ? p.image
+            : fallbackRelatedImages[idx % fallbackRelatedImages.length],
+        title: p.title,
+      }))
+    return [...otherWpPosts, ...defaultRelatedArticles].slice(0, 8)
+  }, [wpPosts, activePost?.slug])
 
   const handleLike = () => {
     if (liked) {
@@ -76,6 +190,20 @@ const BlogInnerPage = () => {
       setLiked(true)
     }
   }
+
+  const displayTitle =
+    activePost?.title ||
+    "What is a Treatment in Video Production? Expert Answers!"
+  const displayAuthor =
+    activePost?.author === "pocketadmin"
+      ? "Pocket Creatives"
+      : activePost?.author || "Pocket Creatives"
+  const displayDate = activePost?.dateFormatted || "20th March 2025"
+  const displayCategory =
+    activePost?.primaryCategory === "Uncategorized"
+      ? "Video"
+      : activePost?.primaryCategory || "Video"
+  const displayHeroImage = activePost?.image || innerHeroImg
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -101,28 +229,28 @@ const BlogInnerPage = () => {
 
               {/* Blog Title (#4263:3618, x:281, y:188, w:1334) */}
               <h1 className="mt-5 lg:mt-[25px] lg:ml-[42px] max-w-[1334px] text-[36px] sm:text-[56px] lg:text-[80px] font-bold leading-[1] tracking-[-0.05em] text-brand-slate">
-                What is a Treatment in Video Production? Expert Answers!
+                {displayTitle}
               </h1>
 
               {/* Author / Date / Tag Meta Row (#4263:3623 + #4263:3621 + #4263:3619, y:373) */}
               <div className="mt-6 lg:mt-[25px] lg:ml-[42px] flex flex-wrap items-center gap-4 lg:gap-[20px]">
                 <span className="text-[16px] sm:text-[20px] font-medium leading-[20px] tracking-[-0.05em] text-brand-blue">
-                  Pocket Creatives
+                  {displayAuthor}
                 </span>
                 <span className="w-[6px] h-[6px] rounded-full bg-brand-blue" />
                 <span className="text-[16px] sm:text-[20px] font-medium leading-[20px] tracking-[-0.05em] text-brand-blue">
-                  20th March 2025
+                  {displayDate}
                 </span>
-                <span className="lg:ml-[10px] inline-flex w-[128px] h-[38px] items-center justify-center rounded-[10px] bg-brand-yellow text-[18px] sm:text-[20px] font-medium leading-[20px] tracking-[-0.05em] text-black">
-                  Video
+                <span className="lg:ml-[10px] inline-flex min-w-[128px] px-4 h-[38px] items-center justify-center rounded-[10px] bg-brand-yellow text-[18px] sm:text-[20px] font-medium leading-[20px] tracking-[-0.05em] text-black">
+                  {displayCategory}
                 </span>
               </div>
 
               {/* Hero Image (#4263:3663, x:239, y:435, w:1442, h:503) */}
               <div className="mt-6 lg:mt-[24px] w-full lg:w-[1442px] lg:h-[503px] overflow-hidden bg-gray-100">
                 <img
-                  src={innerHeroImg}
-                  alt="What is a Treatment in Video Production?"
+                  src={displayHeroImage}
+                  alt={displayTitle}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -136,216 +264,220 @@ const BlogInnerPage = () => {
                   Table of Contents
                 </h2>
                 <nav className="mt-[20px] flex flex-col gap-[20px] text-[18px] sm:text-[20px] font-normal leading-[20px] tracking-[-0.05em] text-black">
-                  <a href="#what-is-treatment" className="hover:underline">
-                    What is Treatment in Video Production?
-                  </a>
-                  <a href="#different-types" className="hover:underline">
-                    Different Types of Video Treatments &amp; Their Use Cases
-                  </a>
-                  <a href="#treatment-vs-script" className="hover:underline">
-                    Treatment vs. Script vs. Storyboard – What’s the Difference?
-                  </a>
-                  <a href="#why-important" className="hover:underline">
-                    Why is a Video Treatment Important?
-                  </a>
+                  {tocLinks.map(item => (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      className="hover:underline"
+                    >
+                      {item.text}
+                    </a>
+                  ))}
                 </nav>
               </aside>
 
               {/* Right Article Content (#4263:3622, w:1046) */}
-              <article className="w-full lg:w-[1046px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[22px] tracking-[-0.05em] text-brand-slate space-y-5">
-                <p>
-                  Ever had a brilliant video idea but struggled to communicate it clearly? Whether you’re planning a
-                  product video, brand film, or social media advert, ensuring everyone shares the same vision is
-                  crucial. That’s where a treatment comes in.
-                </p>
-                <p>
-                  But what is a treatment in video production? It’s a concise, structured document outlining your
-                  video’s concept, tone, narrative, and stylistic approach. It acts as a roadmap before scriptwriting,
-                  helping directors, clients, and production teams stay aligned.
-                </p>
-                <p>
-                  A well-structured video treatment ensures clarity, minimises revisions, and keeps your creative
-                  vision intact. But what does it look like? And how do you write one? In this guide, we’ll break down
-                  everything you need to know – from step-by-step structuring to common mistakes to avoid.
-                </p>
+              {activePost && htmlWithIds ? (
+                <article
+                  className="w-full lg:w-[1046px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[22px] tracking-[-0.05em] text-brand-slate space-y-5 [&_h2]:pt-4 [&_h2]:text-[22px] sm:[&_h2]:text-[24px] lg:[&_h2]:text-[20px] [&_h2]:font-bold [&_h2]:leading-[22px] [&_h2]:text-brand-slate [&_h3]:font-bold [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-1 [&_a]:text-brand-blue [&_a]:underline"
+                  dangerouslySetInnerHTML={{ __html: htmlWithIds }}
+                />
+              ) : (
+                <article className="w-full lg:w-[1046px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[22px] tracking-[-0.05em] text-brand-slate space-y-5">
+                  <p>
+                    Ever had a brilliant video idea but struggled to communicate it clearly? Whether you’re planning a
+                    product video, brand film, or social media advert, ensuring everyone shares the same vision is
+                    crucial. That’s where a treatment comes in.
+                  </p>
+                  <p>
+                    But what is a treatment in video production? It’s a concise, structured document outlining your
+                    video’s concept, tone, narrative, and stylistic approach. It acts as a roadmap before scriptwriting,
+                    helping directors, clients, and production teams stay aligned.
+                  </p>
+                  <p>
+                    A well-structured video treatment ensures clarity, minimises revisions, and keeps your creative
+                    vision intact. But what does it look like? And how do you write one? In this guide, we’ll break down
+                    everything you need to know – from step-by-step structuring to common mistakes to avoid.
+                  </p>
 
-                <h2
-                  id="what-is-treatment"
-                  className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
-                >
-                  What is a Treatment in Video Production?
-                </h2>
-                <p>
-                  A video treatment is a pre-production document that summarises a project’s creative vision, story
-                  structure, and stylistic approach. It’s often used before scriptwriting to define the mood, tone,
-                  and key messaging of the video.
-                </p>
-                <p>A treatment is particularly useful for:</p>
-                <ul className="list-disc pl-6 space-y-1">
-                  <li>
-                    <b className="font-bold">Aligning stakeholders</b> – ensuring everyone shares the same creative
-                    vision.
-                  </li>
-                  <li>
-                    <b className="font-bold">Pitching ideas</b> – helping clients, investors, or internal teams
-                    approve a concept.
-                  </li>
-                  <li>
-                    <b className="font-bold">Minimising revisions</b> – reducing confusion and costly reshoots during
-                    production.
-                  </li>
-                </ul>
+                  <h2
+                    id="what-is-treatment"
+                    className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
+                  >
+                    What is a Treatment in Video Production?
+                  </h2>
+                  <p>
+                    A video treatment is a pre-production document that summarises a project’s creative vision, story
+                    structure, and stylistic approach. It’s often used before scriptwriting to define the mood, tone,
+                    and key messaging of the video.
+                  </p>
+                  <p>A treatment is particularly useful for:</p>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>
+                      <b className="font-bold">Aligning stakeholders</b> – ensuring everyone shares the same creative
+                      vision.
+                    </li>
+                    <li>
+                      <b className="font-bold">Pitching ideas</b> – helping clients, investors, or internal teams
+                      approve a concept.
+                    </li>
+                    <li>
+                      <b className="font-bold">Minimising revisions</b> – reducing confusion and costly reshoots during
+                      production.
+                    </li>
+                  </ul>
 
-                <h2
-                  id="treatment-vs-script"
-                  className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
-                >
-                  Treatment vs. Script vs. Storyboard – What’s the Difference?
-                </h2>
+                  <h2
+                    id="treatment-vs-script"
+                    className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
+                  >
+                    Treatment vs. Script vs. Storyboard – What’s the Difference?
+                  </h2>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full max-w-[780px] text-left border-collapse">
-                    <thead>
-                      <tr className="font-bold">
-                        <th className="py-1 pr-6">Document</th>
-                        <th className="py-1 pr-6">Purpose</th>
-                        <th className="py-1">Focus</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="py-1 pr-6 font-bold">Treatment</td>
-                        <td className="py-1 pr-6">High-level concept &amp; visual style</td>
-                        <td className="py-1">Big-picture storytelling</td>
-                      </tr>
-                      <tr>
-                        <td className="py-1 pr-6 font-bold">Script</td>
-                        <td className="py-1 pr-6">Detailed dialogue &amp; scene actions</td>
-                        <td className="py-1">Every word &amp; movement</td>
-                      </tr>
-                      <tr>
-                        <td className="py-1 pr-6 font-bold">Storyboard</td>
-                        <td className="py-1 pr-6">Shot-by-shot visual representation</td>
-                        <td className="py-1">Camera angles &amp; flow</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <p>
-                  If you’re wondering what is a treatment in video production, it’s essentially the first step to
-                  transforming an idea into a fully structured video concept.
-                </p>
-
-                <h2
-                  id="different-types"
-                  className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
-                >
-                  Different Types of Video Treatments &amp; Their Use-Cases
-                </h2>
-                <p>
-                  Not all video treatments are created equal! Depending on the type of video, a treatment can vary
-                  significantly in structure, tone, and purpose. Here’s how treatments differ based on video type:
-                </p>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-bold">Commercial Video Treatment</h3>
-                    <ul className="list-disc pl-6">
-                      <li>Used by brands to develop advertising concepts before production.</li>
-                      <li>Focuses on storytelling, emotional triggers, and brand messaging.</li>
-                      <li>Often includes a mood board, visual style guide, and proposed call-to-action (CTA).</li>
-                    </ul>
+                  <div className="overflow-x-auto">
+                    <table className="w-full max-w-[780px] text-left border-collapse">
+                      <thead>
+                        <tr className="font-bold">
+                          <th className="py-1 pr-6">Document</th>
+                          <th className="py-1 pr-6">Purpose</th>
+                          <th className="py-1">Focus</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="py-1 pr-6 font-bold">Treatment</td>
+                          <td className="py-1 pr-6">High-level concept &amp; visual style</td>
+                          <td className="py-1">Big-picture storytelling</td>
+                        </tr>
+                        <tr>
+                          <td className="py-1 pr-6 font-bold">Script</td>
+                          <td className="py-1 pr-6">Detailed dialogue &amp; scene actions</td>
+                          <td className="py-1">Every word &amp; movement</td>
+                        </tr>
+                        <tr>
+                          <td className="py-1 pr-6 font-bold">Storyboard</td>
+                          <td className="py-1 pr-6">Shot-by-shot visual representation</td>
+                          <td className="py-1">Camera angles &amp; flow</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
 
-                  <div>
-                    <h3 className="font-bold">Corporate Video Treatment</h3>
-                    <ul className="list-disc pl-6">
-                      <li>Ideal for company overview videos, testimonials, or training content.</li>
-                      <li>Emphasises clarity, professionalism, and messaging alignment.</li>
-                      <li>Often contains structured interview segments, voice over scripting, and branding elements.</li>
-                    </ul>
+                  <p>
+                    If you’re wondering what is a treatment in video production, it’s essentially the first step to
+                    transforming an idea into a fully structured video concept.
+                  </p>
+
+                  <h2
+                    id="different-types"
+                    className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
+                  >
+                    Different Types of Video Treatments &amp; Their Use-Cases
+                  </h2>
+                  <p>
+                    Not all video treatments are created equal! Depending on the type of video, a treatment can vary
+                    significantly in structure, tone, and purpose. Here’s how treatments differ based on video type:
+                  </p>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-bold">Commercial Video Treatment</h3>
+                      <ul className="list-disc pl-6">
+                        <li>Used by brands to develop advertising concepts before production.</li>
+                        <li>Focuses on storytelling, emotional triggers, and brand messaging.</li>
+                        <li>Often includes a mood board, visual style guide, and proposed call-to-action (CTA).</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold">Corporate Video Treatment</h3>
+                      <ul className="list-disc pl-6">
+                        <li>Ideal for company overview videos, testimonials, or training content.</li>
+                        <li>Emphasises clarity, professionalism, and messaging alignment.</li>
+                        <li>Often contains structured interview segments, voice over scripting, and branding elements.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold">Product Video Treatment</h3>
+                      <ul className="list-disc pl-6">
+                        <li>Essential for eCommerce, product showcases, and explainer videos.</li>
+                        <li>Focuses on highlighting product features, functionality, and benefits.</li>
+                        <li>May include macro product shots, animation concepts, and demonstration sequences.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold">Event Video Treatment</h3>
+                      <ul className="list-disc pl-6">
+                        <li>Guides the filming of conferences, product launches, or live events.</li>
+                        <li>Details multi-camera setups, key interview shots, crowd interactions, and event highlights.</li>
+                        <li>Ensures smooth coverage with a shot list and schedule.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold">Social Media Video Treatment</h3>
+                      <ul className="list-disc pl-6">
+                        <li>Short-form, engaging, and highly visual.</li>
+                        <li>Optimised for Instagram Reels, TikTok, and YouTube Shorts.</li>
+                        <li>Focuses on snappy edits, eye-catching transitions, and mobile-friendly framing.</li>
+                      </ul>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="font-bold">Product Video Treatment</h3>
-                    <ul className="list-disc pl-6">
-                      <li>Essential for eCommerce, product showcases, and explainer videos.</li>
-                      <li>Focuses on highlighting product features, functionality, and benefits.</li>
-                      <li>May include macro product shots, animation concepts, and demonstration sequences.</li>
-                    </ul>
-                  </div>
+                  <p>
+                    At Pocket Creatives, we tailor each treatment to match the brand’s goals, audience, and video
+                    platform – ensuring every project delivers maximum impact! If you’re still asking what is a
+                    treatment in video production, the answer is it’s an essential blueprint for video success.
+                  </p>
 
-                  <div>
-                    <h3 className="font-bold">Event Video Treatment</h3>
-                    <ul className="list-disc pl-6">
-                      <li>Guides the filming of conferences, product launches, or live events.</li>
-                      <li>Details multi-camera setups, key interview shots, crowd interactions, and event highlights.</li>
-                      <li>Ensures smooth coverage with a shot list and schedule.</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="font-bold">Social Media Video Treatment</h3>
-                    <ul className="list-disc pl-6">
-                      <li>Short-form, engaging, and highly visual.</li>
-                      <li>Optimised for Instagram Reels, TikTok, and YouTube Shorts.</li>
-                      <li>Focuses on snappy edits, eye-catching transitions, and mobile-friendly framing.</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <p>
-                  At Pocket Creatives, we tailor each treatment to match the brand’s goals, audience, and video
-                  platform – ensuring every project delivers maximum impact! If you’re still asking what is a
-                  treatment in video production, the answer is it’s an essential blueprint for video success.
-                </p>
-
-                <h2
-                  id="why-important"
-                  className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
-                >
-                  Why is a Video Treatment Important?
-                </h2>
-                <p>
-                  A video production treatment isn’t just a creative exercise – it’s a practical tool that saves time,
-                  money, and confusion.
-                </p>
-                <p className="font-bold">Key Benefits:</p>
-                <ul className="list-disc pl-6 space-y-1">
-                  <li>
-                    <b className="font-bold">Clarity &amp; Direction</b> – A well-structured treatment eliminates
-                    misinterpretation between teams.
-                  </li>
-                  <li>
-                    <b className="font-bold">Client Approvals</b> – Treatments provide a clear preview of the video’s
-                    message before investing in production.
-                  </li>
-                  <li>
-                    <b className="font-bold">Fewer Revisions</b> – A solid treatment reduces back-and-forth changes,
-                    cutting production delays.
-                  </li>
-                  <li>
-                    <b className="font-bold">Professionalism</b> – Agencies and brands expect structured treatments
-                    before committing to large-scale projects.
-                  </li>
-                  <li>
-                    <b className="font-bold">Brand Consistency</b> – A well-written treatment not only improves
-                    creative alignment but also strengthens brand consistency.
-                  </li>
-                </ul>
-                <p>
-                  By outlining visual and messaging guidelines upfront, businesses can ensure that every video reflects
-                  their brand identity. This makes marketing efforts more cohesive across different campaigns,
-                  improving audience trust and recognition.
-                </p>
-                <p>
-                  For example, at Pocket Creatives, when working on a crowdfunding video for a beauty brand, a
-                  treatment helped refine the product’s visual story before production, avoiding costly mid-project
-                  changes.
-                </p>
-                <p>So on......</p>
-              </article>
+                  <h2
+                    id="why-important"
+                    className="pt-4 text-[22px] sm:text-[24px] lg:text-[20px] font-bold leading-[22px] text-brand-slate"
+                  >
+                    Why is a Video Treatment Important?
+                  </h2>
+                  <p>
+                    A video production treatment isn’t just a creative exercise – it’s a practical tool that saves time,
+                    money, and confusion.
+                  </p>
+                  <p className="font-bold">Key Benefits:</p>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>
+                      <b className="font-bold">Clarity &amp; Direction</b> – A well-structured treatment eliminates
+                      misinterpretation between teams.
+                    </li>
+                    <li>
+                      <b className="font-bold">Client Approvals</b> – Treatments provide a clear preview of the video’s
+                      message before investing in production.
+                    </li>
+                    <li>
+                      <b className="font-bold">Fewer Revisions</b> – A solid treatment reduces back-and-forth changes,
+                      cutting production delays.
+                    </li>
+                    <li>
+                      <b className="font-bold">Professionalism</b> – Agencies and brands expect structured treatments
+                      before committing to large-scale projects.
+                    </li>
+                    <li>
+                      <b className="font-bold">Brand Consistency</b> – A well-written treatment not only improves
+                      creative alignment but also strengthens brand consistency.
+                    </li>
+                  </ul>
+                  <p>
+                    By outlining visual and messaging guidelines upfront, businesses can ensure that every video reflects
+                    their brand identity. This makes marketing efforts more cohesive across different campaigns,
+                    improving audience trust and recognition.
+                  </p>
+                  <p>
+                    For example, at Pocket Creatives, when working on a crowdfunding video for a beauty brand, a
+                    treatment helped refine the product’s visual story before production, avoiding costly mid-project
+                    changes.
+                  </p>
+                  <p>So on......</p>
+                </article>
+              )}
             </div>
 
             {/* 3. LIKE BAR & RELATED NEWS (#4845:5254, x:260, y:2930, w:1399) */}
@@ -381,7 +513,7 @@ const BlogInnerPage = () => {
                 {relatedArticles.map(rel => (
                   <Link
                     key={rel.title}
-                    to="/blog-inner"
+                    to={`/blog-inner?slug=${encodeURIComponent(rel.slug)}`}
                     className="group block w-full lg:w-[364px]"
                   >
                     <div className="w-full lg:w-[364px] h-[180px] overflow-hidden bg-gray-100">
@@ -405,15 +537,51 @@ const BlogInnerPage = () => {
   )
 }
 
+export const query = graphql`
+  query BlogInnerTemplateQuery {
+    allWpPost(sort: { date: DESC }) {
+      nodes {
+        databaseId
+        title
+        slug
+        date
+        excerpt
+        content
+        author {
+          node {
+            name
+          }
+        }
+        categories {
+          nodes {
+            name
+            slug
+          }
+        }
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
+
 export default BlogInnerPage
 
-export const Head = () => (
-  <>
-    <title>What is a Treatment in Video Production? | Pocket Creatives Blog</title>
-    <meta
-      name="description"
-      content="Learn what a video treatment is, how it compares to scripts and storyboards, and why it is essential for successful video production."
-    />
-  </>
-)
-
+export const Head = ({ pageContext }) => {
+  const title =
+    pageContext?.post?.title ||
+    "What is a Treatment in Video Production? | Pocket Creatives Blog"
+  return (
+    <>
+      <title>{title}</title>
+      <meta
+        name="description"
+        content="Learn what a video treatment is, how it compares to scripts and storyboards, and why it is essential for successful video production."
+      />
+    </>
+  )
+}
