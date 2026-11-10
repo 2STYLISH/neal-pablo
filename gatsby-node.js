@@ -4,8 +4,8 @@ const WP_GRAPHQL_URL =
   process.env.GATSBY_WP_GRAPHQL_URL ||
   "https://dev-pocket-creatives-cms.pantheonsite.io/graphql"
 
-const POSTS_QUERY = `
-  query GetWordPressPosts {
+const WP_DATA_QUERY = `
+  query GetWordPressPostsAndPages {
     posts(first: 100, where: { status: PUBLISH }) {
       nodes {
         id
@@ -26,6 +26,22 @@ const POSTS_QUERY = `
             slug
           }
         }
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+    pages(first: 50, where: { status: PUBLISH }) {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
         featuredImage {
           node {
             sourceUrl
@@ -72,33 +88,54 @@ exports.createSchemaCustomization = ({ actions }) => {
       categories: WpCategoryConnection
       featuredImage: WpMediaItemEdge
     }
+    type WpPage implements Node {
+      wpId: String
+      databaseId: Int
+      title: String
+      slug: String
+      isFrontPage: Boolean
+      content: String
+      featuredImage: WpMediaItemEdge
+    }
   `)
 }
 
-async function fetchWpPosts(reporter) {
+async function fetchWpData(reporter) {
   try {
     const res = await fetch(WP_GRAPHQL_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: POSTS_QUERY }),
+      body: JSON.stringify({ query: WP_DATA_QUERY }),
     })
     if (!res.ok) {
       reporter.warn(`WPGraphQL responded with status ${res.status}`)
-      return []
+      return { posts: [], pages: [] }
     }
     const json = await res.json()
-    return json?.data?.posts?.nodes || []
+    return {
+      posts: json?.data?.posts?.nodes || [],
+      pages: json?.data?.pages?.nodes || [],
+    }
   } catch (err) {
-    reporter.warn(`Failed to fetch posts from WPGraphQL (${WP_GRAPHQL_URL}): ${err.message}`)
-    return []
+    reporter.warn(
+      `Failed to fetch data from WPGraphQL (${WP_GRAPHQL_URL}): ${err.message}`
+    )
+    return { posts: [], pages: [] }
   }
 }
 
-exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, reporter }) => {
+exports.sourceNodes = async ({
+  actions,
+  createNodeId,
+  createContentDigest,
+  reporter,
+}) => {
   const { createNode } = actions
-  const posts = await fetchWpPosts(reporter)
+  const { posts, pages } = await fetchWpData(reporter)
 
-  reporter.info(`Fetched ${posts.length} post(s) from Headless WordPress (${WP_GRAPHQL_URL})`)
+  reporter.info(
+    `Fetched ${posts.length} post(s) and ${pages.length} page(s) from Headless WordPress (${WP_GRAPHQL_URL})`
+  )
 
   posts.forEach(post => {
     createNode({
@@ -110,6 +147,20 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
       internal: {
         type: "WpPost",
         contentDigest: createContentDigest(post),
+      },
+    })
+  })
+
+  pages.forEach(page => {
+    createNode({
+      ...page,
+      wpId: page.id,
+      id: createNodeId(`WpPage-${page.databaseId || page.slug}`),
+      parent: null,
+      children: [],
+      internal: {
+        type: "WpPage",
+        contentDigest: createContentDigest(page),
       },
     })
   })

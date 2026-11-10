@@ -1,9 +1,15 @@
 import * as React from "react"
-import { Link } from "gatsby"
+import { Link, graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
 import SoundVideo from "../components/SoundVideo"
+import {
+  DEFAULT_HOMEPAGE_CONTENT,
+  fetchLiveWpHomepage,
+  findHomePageNode,
+  parseHomepageFromWpPage,
+} from "../utils/wpHomepage"
 
 import logo from "../images/logo.png"
 import heroImg from "../images/hero.png"
@@ -52,8 +58,6 @@ import lauren from "../images/lauren.png"
 
 // BTS & Reviews
 import bts from "../images/bts.png"
-
-const LOREM = "Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare. In nec lacinia consectetur placerat vestibulum sem odio. In feugiat elit fames eget lobortis turpis scelerisque tincidunt. Enim."
 
 /* ================================================================
    SHARED COMPONENTS
@@ -116,7 +120,7 @@ const ArrowBtn = ({ dir, onClick }) => (
    1. HERO
    ================================================================ */
 
-const Hero = () => (
+const Hero = ({ content }) => (
   <section className="container-x pt-6 sm:pt-8 lg:pt-12">
     <div className="flex items-end justify-between">
       <img src={logo} alt="Pocket Creatives" className="h-[44px] sm:h-[70px] lg:h-[102px] w-auto object-contain" />
@@ -126,25 +130,19 @@ const Hero = () => (
     </div>
     <hr className="mt-3 border-brand-slate/40" />
 
-    <h1 className="mt-4 text-[18px] sm:text-[28px] lg:text-[48px] font-medium leading-[1.5em] lg:leading-[2em] tracking-[-0.05em] text-black">
-      We’re a <b className="font-bold text-brand-yellow">fast</b> &amp;{" "}
-      <b className="font-extrabold text-brand-yellow">friendly</b>{" "}
-      <b className="font-bold text-brand-blue">Video Production</b> and{" "}
-      <b className="font-bold text-brand-blue">Photography</b>{" "}
-      <span className="font-normal text-brand-slate">company with</span>{" "}
-      <b className="font-bold text-brand-yellow">bags of experience</b> &amp;{" "}
-      <span className="font-normal text-brand-slate">who</span>{" "}
-      <span className="text-[#FF1E00]">♥</span>{" "}
-      <span className="font-normal text-brand-slate">what we do :)</span>
-    </h1>
+    <h1
+      className="mt-4 text-[18px] sm:text-[28px] lg:text-[48px] font-medium leading-[1.5em] lg:leading-[2em] tracking-[-0.05em] text-black"
+      dangerouslySetInnerHTML={{ __html: content.headlineHtml }}
+    />
 
     <p className="mt-6 text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em]">
-      *Click on Video to toggle sound
+      {content.videoCaption}
     </p>
     <div className="mt-2 relative overflow-hidden rounded-[12px] bg-black group cursor-pointer shadow-lg">
       <SoundVideo
-        src="/videos/showreel.mp4"
-        poster={heroImg}
+        key={content.videoUrl}
+        src={content.videoUrl || "/videos/showreel.mp4"}
+        poster={content.posterUrl || heroImg}
         className="w-full aspect-video object-cover transition duration-300 group-hover:scale-[1.01]"
       />
     </div>
@@ -181,20 +179,21 @@ const partnersPage2 = [
 
 const partnerPages = [partnersPage1, partnersPage2]
 
-const Partners = () => {
+const Partners = ({ content }) => {
   const [page, setPage] = React.useState(0)
 
   return (
     <section className="container-x py-14 sm:py-20 lg:py-24 grid gap-8 lg:grid-cols-[1fr_640px] lg:items-start">
       <div>
-        <h2 className="text-[22px] sm:text-[30px] lg:text-[40px] font-medium leading-[1.35em] tracking-[-0.05em] text-brand-slate">
-          As you can see, we’ve <b className="font-black text-brand-yellow">partnered</b> with a lot of amazing people
-        </h2>
+        <h2
+          className="text-[22px] sm:text-[30px] lg:text-[40px] font-medium leading-[1.35em] tracking-[-0.05em] text-brand-slate"
+          dangerouslySetInnerHTML={{ __html: content.headingHtml }}
+        />
         <p className="mt-3 sm:mt-4 text-[22px] sm:text-[30px] lg:text-[40px] font-extrabold tracking-[-0.05em] text-brand-blue">
-          in many different Industries:
+          {content.subheading}
         </p>
         <p className="mt-4 sm:mt-6 text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[632px]">
-          {LOREM}
+          {content.description}
         </p>
       </div>
 
@@ -234,15 +233,15 @@ const Partners = () => {
    3. YELLOW VIDEO INTRO
    ================================================================ */
 
-const VideoIntro = () => (
+const VideoIntro = ({ content }) => (
   <section id="works" className="bg-brand-yellow text-white">
     <div className="container-x py-16 sm:py-24 lg:py-36 relative">
       <h2 className="heading-xl max-w-[1090px]">
-        Take a look at some of our video work...
+        {content.heading}
       </h2>
       <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[610px_1fr] items-end">
         <p className="text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
-          {LOREM}
+          {content.description}
         </p>
         <div className="flex justify-start lg:justify-end lg:pr-12">
           <img
@@ -273,7 +272,7 @@ const videoCategories = [
   { label: "Social First", img: vidEvents, video: "/videos/hairo-advert.mp4" },
 ]
 
-const VideoProduction = () => {
+const VideoProduction = ({ content }) => {
   const dragScroll = useDragScroll()
   const scroll = dir => {
     if (!dragScroll.ref.current) return
@@ -285,7 +284,7 @@ const VideoProduction = () => {
   return (
     <section id="video-production" className="py-14 sm:py-20 lg:py-28">
       <div className="container-x flex items-center justify-between">
-        <SectionLabel icon={<PlayIcon />}>Video Production</SectionLabel>
+        <SectionLabel icon={<PlayIcon />}>{content.sectionLabel}</SectionLabel>
         <LetsTalk />
       </div>
 
@@ -315,15 +314,18 @@ const VideoProduction = () => {
         ))}
 
         <div className="shrink-0 snap-start flex items-end pb-8 sm:pb-16 lg:pb-[140px] pr-8">
-          <button className="text-[44px] sm:text-[72px] lg:text-[120px] font-extrabold tracking-[-0.05em] leading-[1.1em] underline text-black hover:text-brand-blue transition-colors text-left">
+          <Link
+            to="/works"
+            className="text-[44px] sm:text-[72px] lg:text-[120px] font-extrabold tracking-[-0.05em] leading-[1.1em] underline text-black hover:text-brand-blue transition-colors text-left"
+          >
             View<br />All.
-          </button>
+          </Link>
         </div>
       </div>
 
       <div className="container-x mt-6">
         <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em]">
-          *Drag to play the next Video, Click to toggle sound
+          {content.caption}
         </p>
         <div className="mt-3 flex gap-3">
           <ArrowBtn dir="left" onClick={() => scroll(-1)} />
@@ -338,18 +340,19 @@ const VideoProduction = () => {
    5. CYAN PHOTO INTRO
    ================================================================ */
 
-const PhotoIntro = () => (
+const PhotoIntro = ({ content }) => (
   <section className="bg-brand-blue text-white">
     <div className="container-x py-16 sm:py-24 lg:py-36">
-      <h2 className="heading-xl max-w-[1440px]">
-        We <span className="text-brand-yellow tracking-[-0.15em]">squeeze</span> quality into every pixel...
-      </h2>
+      <h2
+        className="heading-xl max-w-[1440px]"
+        dangerouslySetInnerHTML={{ __html: content.headingHtml }}
+      />
       <div className="mt-8 sm:mt-12 grid gap-6 sm:gap-8 lg:grid-cols-[610px_1fr]">
         <p className="text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-black">
-          {LOREM}
+          {content.description}
         </p>
         <p className="text-[20px] sm:text-[28px] lg:text-[40px] font-extrabold leading-[1.15em] tracking-[-0.05em] text-white">
-          See some of our Photography work for different industries below.
+          {content.rightHeading}
         </p>
       </div>
     </div>
@@ -373,7 +376,7 @@ const photoGalleries = {
   Jewellery: [photoBeautyLarge, vidProduct, photoBeauty],
 }
 
-const Photography = () => {
+const Photography = ({ content }) => {
   const [active, setActive] = React.useState("Beauty")
   const [slideIndex, setSlideIndex] = React.useState(0)
 
@@ -390,7 +393,7 @@ const Photography = () => {
   return (
     <section className="py-14 sm:py-20 lg:py-28 overflow-hidden">
       <div className="container-x flex items-center justify-between">
-        <SectionLabel icon={<ApertureIcon />}>Photography</SectionLabel>
+        <SectionLabel icon={<ApertureIcon />}>{content.sectionLabel}</SectionLabel>
         <LetsTalk />
       </div>
 
@@ -451,22 +454,7 @@ const Photography = () => {
    7. SERVICES
    ================================================================ */
 
-const values = [
-  {
-    title: "Proactive",
-    text: "We pride ourselves on our quality of service above everything else. We’ve taken the time to build a cracking little team at Pocket, and we make sure that you feel the benefits of working with a dedicated video production company who are there for you, and dedicated to the success of your project.",
-  },
-  {
-    title: "Nerds for Visuals",
-    text: "Lorem ipsum dolor sit amet consectetur. Fermentum ut laoreet nunc at amet. Pretium sed tristique eu erat dui elementum eu duis. Sem posuere congue pellentesque duis in. Nunc id ridiculus mattis ullamcorper in id accumsan eu habitant. Mollis duis eu tellus aliquam viverra. Amet feugiat et habitasse mauris massa iaculis. Id at.",
-  },
-  {
-    title: "Valuable",
-    text: "Lorem ipsum dolor sit amet consectetur. Varius tempor id nulla aliquet gravida. Quis at auctor quis lectus velit id parturient bibendum. Amet a erat faucibus enim orci. Praesent magna facilisi erat eget dictumst nulla nunc. Scelerisque cras viverra ipsum at accumsan a. Sed sollicitudin lacinia amet arcu volutpat. Id.",
-  },
-]
-
-const Services = () => {
+const Services = ({ content }) => {
   const { setIsOpen } = React.useContext(ModalContext)
 
   return (
@@ -474,7 +462,7 @@ const Services = () => {
       <div className="container-x py-16 sm:py-24 lg:py-32">
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-[28px] sm:text-[48px] lg:text-[80px] font-extrabold leading-[1.05em] tracking-[-0.05em] text-white">
-            {["Services", "Quality", "People"].map(w => (
+            {(content.checklistWords || ["Services", "Quality", "People"]).map(w => (
               <span key={w} className="block mb-1 sm:mb-2">
                 {w} - <span className="text-brand-blue">Check<CheckMark /></span>
               </span>
@@ -489,7 +477,7 @@ const Services = () => {
         </div>
 
         <div className="mt-12 sm:mt-16 grid gap-8 lg:grid-cols-3 text-black">
-          {values.map(v => (
+          {(content.values || []).map(v => (
             <div key={v.title}>
               <h3 className="text-[18px] sm:text-[24px] lg:text-[30px] font-medium mb-3 sm:mb-4 tracking-[-0.05em]">{v.title}</h3>
               <p className="text-[13px] sm:text-[17px] lg:text-[20px] leading-[1.4em] tracking-[-0.05em] text-black/90">{v.text}</p>
@@ -505,48 +493,32 @@ const Services = () => {
    8. TEAM
    ================================================================ */
 
-const teamMembers = [
-  {
-    first: "Steven",
-    last: "Mayatt",
-    img: steven,
-    roles: ["Managing Director", "Creative Director", "Photographer", "Entrepreneur", "Marketeer", "Coffee Drinker"],
-    nameColor: "text-brand-yellow",
-    lastColor: "text-brand-blue",
-    rolesColor: "text-brand-slate",
-  },
-  {
-    first: "Haider",
-    last: "Romero Perez",
-    img: haider,
-    roles: ["Technical Director", "Cinematographer", "Cameraman", "Editor", "Colourist", "Intrepid Cyclist"],
-    nameColor: "text-brand-yellow",
-    lastColor: "text-brand-blue",
-    rolesColor: "text-black",
-  },
-  {
-    first: "Lauren",
-    last: "Hodge",
-    img: lauren,
-    roles: ["Production Director", "Organiser", "Planner", "Emergency Hand model", "Prop Shopper", "Recipe Wrangler"],
-    nameColor: "text-brand-yellow",
-    lastColor: "text-brand-blue",
-    rolesColor: "text-black",
-  },
-  { first: "Ned", last: "", img: steven, roles: ["Team Member"], nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
-  { first: "Connor", last: "", img: haider, roles: ["Team Member"], nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
-  { first: "Rauchan", last: "", img: lauren, roles: ["Team Member"], nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
+const defaultTeamPhotos = [steven, haider, lauren, steven, haider, lauren]
+const defaultTeamStyles = [
+  { nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
+  { nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-black" },
+  { nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-black" },
+  { nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
+  { nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
+  { nameColor: "text-brand-yellow", lastColor: "text-brand-blue", rolesColor: "text-brand-slate" },
 ]
 
-const Team = () => {
+const Team = ({ content }) => {
   const [sel, setSel] = React.useState(0)
-  const m = teamMembers[sel]
   const { setIsOpen } = React.useContext(ModalContext)
+
+  const members = (content.members || []).map((member, idx) => ({
+    ...member,
+    img: member.img || defaultTeamPhotos[idx % defaultTeamPhotos.length],
+    ...defaultTeamStyles[idx % defaultTeamStyles.length],
+  }))
+
+  const m = members[sel] || members[0]
 
   return (
     <section id="about" className="container-x py-14 sm:py-20 lg:py-28">
       <h2 className="text-[22px] sm:text-[30px] lg:text-[40px] font-extrabold tracking-[-0.05em] text-brand-slate mb-6 sm:mb-8">
-        Meet the Team
+        {content.heading}
       </h2>
 
       <div className="grid gap-8 lg:grid-cols-[550px_1fr] items-start">
@@ -561,7 +533,7 @@ const Team = () => {
         <div>
           <div className="mb-6 sm:mb-8 space-y-2">
             <div className="flex flex-wrap gap-2 sm:gap-3">
-              {teamMembers.slice(0, 3).map((t, i) => (
+              {members.slice(0, 3).map((t, i) => (
                 <button
                   key={t.first}
                   onClick={() => setSel(i)}
@@ -576,7 +548,7 @@ const Team = () => {
               ))}
             </div>
             <div className="flex flex-wrap gap-2 sm:gap-3">
-              {teamMembers.slice(3).map((t, i) => (
+              {members.slice(3).map((t, i) => (
                 <button
                   key={t.first}
                   onClick={() => setSel(i + 3)}
@@ -598,7 +570,7 @@ const Team = () => {
           </h3>
 
           <div className="mt-4 sm:mt-5 flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-1.5 sm:gap-y-2">
-            {m.roles.map(r => (
+            {(m.roles || []).map(r => (
               <span key={r} className={`text-[13px] sm:text-[17px] lg:text-[20px] font-extrabold ${m.rolesColor} tracking-[-0.05em]`}>
                 {r}
               </span>
@@ -606,7 +578,7 @@ const Team = () => {
           </div>
 
           <p className="mt-6 sm:mt-8 text-[13px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.7em] tracking-[-0.05em] text-brand-slate max-w-[579px]">
-            {LOREM}
+            {m.bio || content.bioText}
           </p>
 
           <div className="mt-6 sm:mt-8 flex items-center gap-6 sm:gap-8">
@@ -639,15 +611,6 @@ const Team = () => {
    9. REVIEWS
    ================================================================ */
 
-const reviews = [
-  { name: "Winnie Asawakanjanakit", text: "I had a such a great time working with Steven and his team! They were very professional and they created a safe space for me which made my job as a model on set easier and more enjoyable. Would definitely love to work with them again. :)" },
-  { name: "Crime And Comedy Theatre Co..", text: "Steve & Charlie at Pocket Creatives were fantastic, really first class. Our project involved an older actor and not only did they conduct the pre-shoot with personable, fact-finding efficiency, but they were very considerate, accommodating..." },
-  { name: "John Bond", text: "Very professional company to deal with and delighted with the product videos received. Always a pleasure to deal with Steven and his team." },
-  { name: "Marcus Ramtohul", text: "I've shot with Pocket Creatives on a number of occasions as a model and actor. Always delivering amazing results for clients - gorgeous images and a fun and creative environment. I am constantly looking forward to the next opportunity to shoot with..." },
-  { name: "Klara Niklewicz", text: "Really enjoyed working with Pocket Creatives on a video campaign & webinar. Delivery was quick and to high standard. Thank you!" },
-  { name: "Michelle Vellacott", text: "Pocket Creatives are a great, friendly production company and we love having them use our studios at Tower Bridge Studios. Always a wonderful atmosphere when they are here. Pre-production for the shoot is always very smooth and efficient. A great..." },
-]
-
 const GoogleG = () => (
   <svg viewBox="0 0 48 48" className="h-[36px] w-[36px] sm:h-[48px] sm:w-[48px] shrink-0">
     <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
@@ -657,7 +620,7 @@ const GoogleG = () => (
   </svg>
 )
 
-const Reviews = () => {
+const Reviews = ({ content }) => {
   const reviewsDrag = useDragScroll()
 
   return (
@@ -665,32 +628,35 @@ const Reviews = () => {
       <div className="container-x grid gap-8 sm:gap-10 lg:grid-cols-[1fr_667px] lg:items-start">
         <div>
           <h2 className="text-[28px] sm:text-[52px] lg:text-[80px] font-extrabold leading-[1.1em] tracking-[-0.05em]">
-            <span className="text-brand-slate">Go behind the scenes of our </span>
-            <a
-              href="https://www.google.com/maps/place/Pocket+Creatives"
-              target="_blank"
-              rel="noreferrer"
-              className="text-brand-blue underline decoration-2 underline-offset-[8px]"
-            >
-              5 Star
-            </a>
-            <span className="text-brand-slate"> Service</span>
+            <span className="text-brand-slate">{content.headingPrefix}</span>
+            {content.headingLinkText && (
+              <a
+                href="https://www.google.com/maps/place/Pocket+Creatives"
+                target="_blank"
+                rel="noreferrer"
+                className="text-brand-blue underline decoration-2 underline-offset-[8px]"
+              >
+                {content.headingLinkText}
+              </a>
+            )}
+            <span className="text-brand-slate">{content.headingSuffix}</span>
           </h2>
           <div className="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
             <GoogleG />
             <span className="text-[16px] sm:text-[24px] lg:text-[30px] font-extrabold tracking-[-0.05em] text-brand-slate">
-              Based on<br />88 reviews
+              {content.reviewCountLine1}<br />{content.reviewCountLine2}
             </span>
           </div>
         </div>
 
         <div>
           <p className="text-[13px] sm:text-[16px] font-medium text-brand-slate tracking-[-0.05em] mb-2">
-            *Click on Video to toggle sound
+            {content.videoCaption}
           </p>
           <div className="w-full overflow-hidden rounded-[12px] shadow-md bg-black">
             <SoundVideo
-              src="/videos/ayumi-bts.mp4"
+              key={content.videoUrl}
+              src={content.videoUrl || "/videos/ayumi-bts.mp4"}
               poster={bts}
               className="w-full aspect-video object-cover"
             />
@@ -708,7 +674,7 @@ const Reviews = () => {
         onMouseMove={reviewsDrag.onMouseMove}
         className="no-scrollbar mt-8 sm:mt-12 flex gap-4 sm:gap-6 overflow-x-auto pl-[20px] sm:pl-[37px] lg:pl-[240px] cursor-grab active:cursor-grabbing select-none"
       >
-        {reviews.map(r => (
+        {(content.items || []).map(r => (
           <div key={r.name} className="w-[280px] sm:w-[357px] shrink-0 rounded-[24px] sm:rounded-[32px] bg-[#E6E6E6] p-2.5 sm:p-3 shadow-sm">
             <div className="h-[190px] sm:h-[226px] overflow-hidden rounded-[18px] sm:rounded-[24px] bg-white p-5 sm:p-7">
               <p className="text-[15px] sm:text-[18px] font-medium leading-[1.4em] tracking-[-0.05em] text-black">
@@ -730,31 +696,31 @@ const Reviews = () => {
    10. PRICING  —  Matches HP 1920, HP 1440 & Mobile
    ================================================================ */
 
-const Pricing = () => {
+const Pricing = ({ content }) => {
   return (
     <section id="pricing" className="container-x py-16 sm:py-24 lg:py-32">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 sm:gap-8">
         <h2 className="text-[28px] sm:text-[52px] lg:text-[80px] font-extrabold leading-[1em] tracking-[-0.05em]">
-          <span className="text-brand-yellow">We value</span>{" "}
-          <span className="text-brand-blue">transparency</span>,<br />
-          <span className="text-brand-slate">so let's talk about pricing.</span>
+          <span className="text-brand-yellow">{content.headingYellow}</span>{" "}
+          <span className="text-brand-blue">{content.headingBlue}</span>,<br />
+          <span className="text-brand-slate">{content.headingSlate}</span>
         </h2>
         <Link
           to="/pricing"
           className="shrink-0 rounded-[16px] bg-brand-yellow px-5 sm:px-8 py-2.5 sm:py-3.5 text-[16px] sm:text-[24px] lg:text-[30px] font-medium text-black hover:brightness-105 transition self-start sm:self-auto shadow-btn"
           style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
         >
-          View Pricing
+          {content.buttonText}
         </Link>
       </div>
 
       <p className="mt-8 sm:mt-12 text-[18px] sm:text-[28px] lg:text-[40px] font-medium leading-[1.2em] tracking-[-0.05em] text-brand-slate max-w-[708px]">
-        Lorem ipsum dolor sit amet consectetur. Placerat quisque feugiat porta quam ornare.
+        {content.subtitle}
       </p>
 
       <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[1fr_560px] lg:items-center">
         <p className="text-[14px] sm:text-[17px] lg:text-[20px] font-medium leading-[1.8em] tracking-[-0.05em] text-brand-slate max-w-[701px]">
-          {LOREM}
+          {content.description}
         </p>
 
         {/* Pocket Promise + Value Price Badge from HP 1440 & Mobile */}
@@ -764,7 +730,7 @@ const Pricing = () => {
               <img src={logo} alt="Pocket Promise" className="h-6 w-auto object-contain" />
             </div>
             <span className="text-xl sm:text-2xl font-medium text-black tracking-tight">
-              Pocket Promise
+              {content.promiseLabel}
             </span>
           </div>
 
@@ -773,10 +739,10 @@ const Pricing = () => {
             style={{ boxShadow: "3px 3px 6px 0px rgba(82,110,135,1)" }}
           >
             <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Value
+              {content.badgeBold}
             </span>
             <span className="text-xl sm:text-2xl font-medium text-black">
-              Price
+              {content.badgeLight}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-brand-blue">
               ✓
@@ -792,36 +758,83 @@ const Pricing = () => {
    PAGE
    ================================================================ */
 
-const IndexPage = () => {
+const IndexPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const buildTimeHomeNode = React.useMemo(
+    () => findHomePageNode(data?.allWpPage?.nodes || []),
+    [data]
+  )
+
+  const [homeContent, setHomeContent] = React.useState(() =>
+    buildTimeHomeNode
+      ? parseHomepageFromWpPage(buildTimeHomeNode)
+      : DEFAULT_HOMEPAGE_CONTENT
+  )
+
+  // Live fetch from WordPress GraphQL API on mount so the client can update the Homepage
+  // directly from the WordPress Dashboard without needing to update or rebuild the repo!
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpHomepage()
+      .then(liveHomepage => {
+        if (isMounted && liveHomepage) {
+          setHomeContent(liveHomepage)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
       <Layout active="home" onContactClick={() => setIsOpen(true)}>
         <ContactModal />
-        <Hero />
-        <Partners />
-        <VideoIntro />
-        <VideoProduction />
-        <PhotoIntro />
-        <Photography />
-        <Services />
-        <Team />
-        <Reviews />
-        <Pricing />
+        <Hero content={homeContent.hero} />
+        <Partners content={homeContent.partners} />
+        <VideoIntro content={homeContent.videoIntro} />
+        <VideoProduction content={homeContent.videoProduction} />
+        <PhotoIntro content={homeContent.photoIntro} />
+        <Photography content={homeContent.photography} />
+        <Services content={homeContent.services} />
+        <Team content={homeContent.team} />
+        <Reviews content={homeContent.reviews} />
+        <Pricing content={homeContent.pricing} />
       </Layout>
     </ModalContext.Provider>
   )
 }
 
+export const query = graphql`
+  query HomePageWpQuery {
+    allWpPage {
+      nodes {
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
+
 export default IndexPage
 
 export const Head = () => (
   <>
-    <title>Pocket Creatives | Video Production &amp; Photography</title>
+    <title>Pocket Creatives — Video Production &amp; Photography</title>
     <meta
       name="description"
-      content="Fast & friendly Video Production and Photography company with bags of experience."
+      content="Fast & friendly Video Production and Photography company in Battersea, London."
     />
   </>
 )
