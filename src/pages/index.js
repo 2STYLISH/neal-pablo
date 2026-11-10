@@ -132,6 +132,7 @@ const Hero = ({ content }) => (
     <hr className="mt-3 border-brand-slate/40" />
 
     <h1
+      key={content.headlineHtml}
       className="mt-4 text-[18px] sm:text-[28px] lg:text-[48px] font-medium leading-[1.5em] lg:leading-[2em] tracking-[-0.05em] text-black"
       dangerouslySetInnerHTML={{ __html: content.headlineHtml }}
     />
@@ -187,6 +188,7 @@ const Partners = ({ content }) => {
     <section className="container-x py-14 sm:py-20 lg:py-24 grid gap-8 lg:grid-cols-[1fr_640px] lg:items-start">
       <div>
         <h2
+          key={content.headingHtml}
           className="text-[22px] sm:text-[30px] lg:text-[40px] font-medium leading-[1.35em] tracking-[-0.05em] text-brand-slate"
           dangerouslySetInnerHTML={{ __html: content.headingHtml }}
         />
@@ -345,6 +347,7 @@ const PhotoIntro = ({ content }) => (
   <section className="bg-brand-blue text-white">
     <div className="container-x py-16 sm:py-24 lg:py-36">
       <h2
+        key={content.headingHtml}
         className="heading-xl max-w-[1440px]"
         dangerouslySetInnerHTML={{ __html: content.headingHtml }}
       />
@@ -767,15 +770,15 @@ const IndexPage = ({ data }) => {
     [data]
   )
 
-  const [homeContent, setHomeContent] = React.useState(() => {
-    const cached = getCachedWpHomepage()
-    if (cached) return cached
-    return buildTimeHomeNode
+  // Initialize with build-time node so React 18 production hydration on Netlify matches 100%,
+  // then immediately apply localStorage cache in useLayoutEffect before browser paint.
+  const [homeContent, setHomeContent] = React.useState(() =>
+    buildTimeHomeNode
       ? parseHomepageFromWpPage(buildTimeHomeNode)
       : DEFAULT_HOMEPAGE_CONTENT
-  })
+  )
 
-  // Apply cached WP homepage before paint if SSR hydrated with default content
+  // Apply cached WP homepage before paint so refreshing never flashes old content
   React.useLayoutEffect(() => {
     const cached = getCachedWpHomepage()
     if (cached) {

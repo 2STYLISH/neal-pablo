@@ -149,9 +149,7 @@ const BlogsPage = ({ data }) => {
   const drag = useDragScroll()
 
   const buildTimeNodes = data?.allWpPost?.nodes || []
-  const [wpNodes, setWpNodes] = React.useState(
-    () => getCachedWpPosts() || buildTimeNodes
-  )
+  const [wpNodes, setWpNodes] = React.useState(buildTimeNodes)
 
   React.useLayoutEffect(() => {
     const cached = getCachedWpPosts()

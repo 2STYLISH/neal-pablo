@@ -492,7 +492,7 @@ export function setCachedWpHomepage(data) {
 }
 
 export async function fetchLiveWpHomepage() {
-  const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+  const response = await fetch(`${WP_GRAPHQL_ENDPOINT}?cb=${Date.now()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",

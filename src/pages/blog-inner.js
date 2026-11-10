@@ -112,9 +112,7 @@ const BlogInnerPage = ({ data, pageContext, location }) => {
   const [liked, setLiked] = React.useState(false)
 
   const buildTimeNodes = data?.allWpPost?.nodes || []
-  const [wpNodes, setWpNodes] = React.useState(
-    () => getCachedWpPosts() || buildTimeNodes
-  )
+  const [wpNodes, setWpNodes] = React.useState(buildTimeNodes)
 
   React.useLayoutEffect(() => {
     const cached = getCachedWpPosts()
