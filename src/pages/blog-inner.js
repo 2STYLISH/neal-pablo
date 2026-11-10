@@ -5,6 +5,7 @@ import ContactModal, { ModalContext } from "../components/ContactModal"
 import {
   extractHeadingsAndAddIds,
   fetchLiveWpPosts,
+  getCachedWpPosts,
   normalizeWpPost,
 } from "../utils/wpClient"
 
@@ -111,7 +112,16 @@ const BlogInnerPage = ({ data, pageContext, location }) => {
   const [liked, setLiked] = React.useState(false)
 
   const buildTimeNodes = data?.allWpPost?.nodes || []
-  const [wpNodes, setWpNodes] = React.useState(buildTimeNodes)
+  const [wpNodes, setWpNodes] = React.useState(
+    () => getCachedWpPosts() || buildTimeNodes
+  )
+
+  React.useLayoutEffect(() => {
+    const cached = getCachedWpPosts()
+    if (cached && cached.length > 0) {
+      setWpNodes(cached)
+    }
+  }, [])
 
   React.useEffect(() => {
     let isMounted = true

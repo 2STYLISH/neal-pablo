@@ -3,7 +3,7 @@ import { Link, graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
-import { fetchLiveWpPosts, normalizeWpPost } from "../utils/wpClient"
+import { fetchLiveWpPosts, getCachedWpPosts, normalizeWpPost } from "../utils/wpClient"
 
 import blog1 from "../images/blogs/blog-1.png"
 import blog2 from "../images/blogs/blog-2.png"
@@ -149,7 +149,16 @@ const BlogsPage = ({ data }) => {
   const drag = useDragScroll()
 
   const buildTimeNodes = data?.allWpPost?.nodes || []
-  const [wpNodes, setWpNodes] = React.useState(buildTimeNodes)
+  const [wpNodes, setWpNodes] = React.useState(
+    () => getCachedWpPosts() || buildTimeNodes
+  )
+
+  React.useLayoutEffect(() => {
+    const cached = getCachedWpPosts()
+    if (cached && cached.length > 0) {
+      setWpNodes(cached)
+    }
+  }, [])
 
   React.useEffect(() => {
     let isMounted = true

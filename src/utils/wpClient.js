@@ -124,16 +124,37 @@ export function normalizeWpPost(node, index = 0, fallbackImages = []) {
   }
 }
 
+const WP_POSTS_CACHE_KEY = "pocket_wp_posts_cache_v1"
+
+export function getCachedWpPosts() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(WP_POSTS_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
 export async function fetchLiveWpPosts() {
   const response = await fetch(WP_GRAPHQL_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
     body: JSON.stringify({ query: POSTS_QUERY }),
   })
   if (!response.ok) {
     throw new Error(`WPGraphQL request failed: ${response.status}`)
   }
   const json = await response.json()
-  return json?.data?.posts?.nodes || []
+  const nodes = json?.data?.posts?.nodes || []
+  if (typeof window !== "undefined" && nodes.length > 0) {
+    try {
+      window.localStorage.setItem(WP_POSTS_CACHE_KEY, JSON.stringify(nodes))
+    } catch (e) {
+      // ignore storage errors
+    }
+  }
+  return nodes
 }
 

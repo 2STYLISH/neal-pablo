@@ -470,6 +470,27 @@ export function findHomePageNode(pageNodes = []) {
   )
 }
 
+const HOMEPAGE_CACHE_KEY = "pocket_wp_homepage_cache_v1"
+
+export function getCachedWpHomepage() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(HOMEPAGE_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
+export function setCachedWpHomepage(data) {
+  if (typeof window === "undefined" || !data) return
+  try {
+    window.localStorage.setItem(HOMEPAGE_CACHE_KEY, JSON.stringify(data))
+  } catch (e) {
+    // ignore storage quota errors
+  }
+}
+
 export async function fetchLiveWpHomepage() {
   const response = await fetch(WP_GRAPHQL_ENDPOINT, {
     method: "POST",
@@ -483,6 +504,8 @@ export async function fetchLiveWpHomepage() {
   const json = await response.json()
   const pages = json?.data?.pages?.nodes || []
   const homeNode = findHomePageNode(pages)
-  return parseHomepageFromWpPage(homeNode)
+  const parsed = parseHomepageFromWpPage(homeNode)
+  setCachedWpHomepage(parsed)
+  return parsed
 }
 

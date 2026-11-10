@@ -8,6 +8,7 @@ import {
   DEFAULT_HOMEPAGE_CONTENT,
   fetchLiveWpHomepage,
   findHomePageNode,
+  getCachedWpHomepage,
   parseHomepageFromWpPage,
 } from "../utils/wpHomepage"
 
@@ -766,11 +767,21 @@ const IndexPage = ({ data }) => {
     [data]
   )
 
-  const [homeContent, setHomeContent] = React.useState(() =>
-    buildTimeHomeNode
+  const [homeContent, setHomeContent] = React.useState(() => {
+    const cached = getCachedWpHomepage()
+    if (cached) return cached
+    return buildTimeHomeNode
       ? parseHomepageFromWpPage(buildTimeHomeNode)
       : DEFAULT_HOMEPAGE_CONTENT
-  )
+  })
+
+  // Apply cached WP homepage before paint if SSR hydrated with default content
+  React.useLayoutEffect(() => {
+    const cached = getCachedWpHomepage()
+    if (cached) {
+      setHomeContent(cached)
+    }
+  }, [])
 
   // Live fetch from WordPress GraphQL API on mount so the client can update the Homepage
   // directly from the WordPress Dashboard without needing to update or rebuild the repo!
