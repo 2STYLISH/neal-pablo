@@ -1,7 +1,15 @@
 import * as React from "react"
+import { graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
+import {
+  DEFAULT_WORKS_CONTENT,
+  parseWorksFromWpPage,
+  findWorksPageNode,
+  fetchLiveWpWorks,
+  getCachedWpWorks,
+} from "../utils/wpPagesContent"
 
 // Gallery reel (Figma: Gallery Reel v2)
 import reelHairo from "../images/works/reel-hairo.png"
@@ -23,7 +31,6 @@ import vid11 from "../images/works/vid-11.png"
 import vid12 from "../images/works/vid-12.png"
 
 // Photography grid (Figma: Rectangle 126–136 + Hover gif photos)
-import photo01 from "../images/works/photo-01.png"
 import photo02 from "../images/works/photo-02.png"
 import photo03 from "../images/works/photo-03.png"
 import photo04 from "../images/works/photo-04.png"
@@ -36,42 +43,44 @@ import photo10 from "../images/works/photo-10.png"
 import photo11 from "../images/works/photo-11.png"
 import photo12 from "../images/works/photo-12.png"
 
-const categories = [
-  "Beauty", "Product", "Events", "Crowdfunding", "Fashion", "People",
-  "Jewellery", "TV Ads", "HR", "Education", "Explainers", "Social First",
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
+const defaultReelVisuals = [
+  { img: "/videos/soap-glory-comp.gif", poster: reelSoapGlory, w: "aspect-square" },
+  { img: reelHairo, video: "/videos/hairo-advert.mp4", w: "aspect-[16/9]" },
+  { img: reelNursem, w: "aspect-[2/3]" },
 ]
 
-// Widths from Figma at 450px height: 800 / 300 / 450
-const reel = [
-  { img: "/videos/soap-glory-comp.gif", poster: reelSoapGlory, name: "Soap & Glory", type: "Photo Comp", w: "aspect-square" },
-  { img: reelHairo, video: "/videos/hairo-advert.mp4", name: "HairO Brand Advert", type: "Video", w: "aspect-[16/9]" },
-  { img: reelNursem, name: "Nursem", type: "Photo", w: "aspect-[2/3]" },
+const defaultVideoPosters = [
+  vid01,
+  vid02,
+  vid03,
+  vid04,
+  vid05,
+  vid06,
+  vid07,
+  vid08,
+  vid09,
+  vid10,
+  vid11,
+  vid12,
 ]
 
-const videos = [
-  [vid01, "Client 1.1", "/videos/hairo-advert.mp4"],
-  [vid02, "Client 1.2", "/videos/beauty-showreel.mp4"],
-  [vid03, "Client 2", "/videos/james-read-tan.mp4"],
-  [vid04, "Client 3.1", "/videos/water-texture-bts.mp4"],
-  [vid05, "Client 3.2", "/videos/ayumi-bts.mp4"],
-  [vid06, "Client 3.3", "/videos/healthy-mummy-bts.mp4"],
-  [vid07, "Client 4", "/videos/food-showreel.mp4"],
-  [vid08, "Client 5", "/videos/product-masabi.mp4"],
-  [vid09, "Client 6.1", "/videos/events-showreel.mp4"],
-  [vid10, "Client 6.2", "/videos/crowdfunding-hygie.mp4"],
-  [vid11, "Client 7", "/videos/tv-california-walnuts.mp4"],
-  [vid12, "Client 8", "/videos/client-film.mp4"],
+const defaultPhotoSources = [
+  "/videos/figma-gif-1.gif",
+  photo02,
+  photo03,
+  photo04,
+  photo05,
+  photo06,
+  photo07,
+  photo08,
+  photo09,
+  photo10,
+  photo11,
+  photo12,
 ]
-
-// Figma groups photos in pairs: 3 pairs per row
-const photos = [
-  ["/videos/figma-gif-1.gif", "Hover ex. here"], [photo02, "Client 2"], [photo03, "Client 3"], [photo04, "Client 4"],
-  [photo05, "Client 5"], [photo06, "Client 6"], [photo07, "Client 7"], [photo08, "Client 8"],
-  [photo09, "Client 9"], [photo10, "Client 10"], [photo11, "Client 11"], [photo12, "Client 12"],
-]
-
-const LOREM =
-  "Lorem ipsum dolor sit amet consectetur. Nulla purus rhoncus at mattis. Et ac vitae ornare volutpat. Mollis sem scelerisque dictum nunc iaculis vivamus donec. Molestie sed mattis aenean sit arcu ipsum amet vulputate tellus. Blandit pellentesque magna egestas eget rhoncus tincidunt. In ultrices velit et velit morbi vitae dolor fames. Rhoncus."
 
 const Arrow = () => (
   <svg viewBox="0 0 24 24" className="h-[0.9em] w-[0.9em] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -80,8 +89,15 @@ const Arrow = () => (
 )
 
 /* ---------------- Gallery Reel (auto-scrolling, drag, play/pause) ---------------- */
-const GalleryReel = ({ playing, onOpen }) => {
+const GalleryReel = ({ playing, onOpen, reelItems }) => {
   const drag = useDragScroll()
+  const reel = (reelItems || DEFAULT_WORKS_CONTENT.reel).map((item, idx) => ({
+    ...defaultReelVisuals[idx],
+    ...item,
+    img: item.img || defaultReelVisuals[idx]?.img || reelSoapGlory,
+    video: item.video || defaultReelVisuals[idx]?.video || "",
+    w: defaultReelVisuals[idx]?.w || "aspect-square",
+  }))
   const items = [...reel, ...reel, ...reel, ...reel]
 
   React.useEffect(() => {
@@ -160,11 +176,59 @@ const Lightbox = ({ src, onClose }) => {
   )
 }
 
-const WorksPage = () => {
+const WorksPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [cat, setCat] = React.useState("Beauty")
   const [playing, setPlaying] = React.useState(true)
   const [lightbox, setLightbox] = React.useState(null)
+
+  const buildTimePageNodes = data?.allWpPage?.nodes || []
+  const buildTimeWorksNode = findWorksPageNode(buildTimePageNodes)
+  const [worksContent, setWorksContent] = React.useState(() =>
+    parseWorksFromWpPage(buildTimeWorksNode)
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    const cached = getCachedWpWorks()
+    if (cached) {
+      setWorksContent(cached)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpWorks()
+      .then(liveContent => {
+        if (isMounted && liveContent) {
+          setWorksContent(liveContent)
+        }
+      })
+      .catch(() => {
+        // Keep cached or build-time fallback if offline
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const categories =
+    worksContent.categorySection?.categories ||
+    DEFAULT_WORKS_CONTENT.categorySection.categories
+
+  const videos = (
+    worksContent.videography?.items || DEFAULT_WORKS_CONTENT.videography.items
+  ).map((item, idx) => [
+    defaultVideoPosters[idx] || vid01,
+    item.label,
+    item.videoUrl || DEFAULT_WORKS_CONTENT.videography.items[idx]?.videoUrl,
+  ])
+
+  const photos = (
+    worksContent.photography?.items || DEFAULT_WORKS_CONTENT.photography.items
+  ).map((item, idx) => [
+    defaultPhotoSources[idx] || photo02,
+    item.label,
+  ])
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -175,7 +239,7 @@ const WorksPage = () => {
         {/* View By Category */}
         <section className="container-x pt-10 sm:pt-14 lg:pt-[52px] text-center">
           <h1 className="text-[28px] sm:text-[40px] leading-none font-extrabold tracking-[-0.05em] text-brand-blue">
-            View By Category
+            {worksContent.categorySection?.heading || "View By Category"}
           </h1>
           <div className="mx-auto mt-4 sm:mt-6 lg:mt-[30px] flex max-w-[360px] sm:max-w-none flex-wrap justify-center gap-x-2 sm:gap-x-0 gap-y-1">
             {categories.map(c => (
@@ -194,7 +258,11 @@ const WorksPage = () => {
 
         {/* Gallery Reel — full bleed */}
         <section className="mt-8 sm:mt-10 lg:mt-[42px]">
-          <GalleryReel playing={playing} onOpen={setLightbox} />
+          <GalleryReel
+            playing={playing}
+            onOpen={setLightbox}
+            reelItems={worksContent.reel}
+          />
         </section>
 
         {/* Category title + play/pause */}
@@ -220,16 +288,18 @@ const WorksPage = () => {
           <div className="container-x py-14 sm:py-20 lg:pt-[157px] lg:pb-[201px]">
             <div className="lg:px-[120px]">
               <h2 className="text-[52px] sm:text-[80px] lg:text-[120px] font-extrabold leading-[1.0] tracking-[-0.05em] text-white">
-                Category:
+                {worksContent.categoryHighlight?.headingPrefix || "Category:"}
                 <br />
                 {cat}
               </h2>
               <div className="mt-8 sm:mt-12 lg:mt-[60px] grid gap-8 lg:grid-cols-[610px_1fr] lg:gap-[173px]">
                 <p className="text-[16px] sm:text-[20px] font-medium leading-[2] tracking-[-0.05em] text-black">
-                  {LOREM}
+                  {worksContent.categoryHighlight?.description}
                 </p>
                 <div className="text-[18px] sm:text-[20px] font-extrabold tracking-[-0.05em]">
-                  <p className="text-black">Go to...</p>
+                  <p className="text-black">
+                    {worksContent.categoryHighlight?.goToLabel || "Go to..."}
+                  </p>
                   <a href="#videography" className="mt-3 flex items-center gap-2 text-white hover:underline">
                     <Arrow /> {cat} Videography
                   </a>
@@ -250,12 +320,12 @@ const WorksPage = () => {
                 {cat} Videography
               </h2>
               <p className="text-[13px] sm:text-[16px] font-medium tracking-[-0.05em] text-brand-slate">
-                *Click on Video to play in large view
+                {worksContent.videography?.caption || "*Click on Video to play in large view"}
               </p>
             </div>
             <div className="mt-4 lg:mt-[32px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[28px] gap-y-6 sm:gap-y-[32px]">
-              {videos.map(([src, label, videoSrc]) => (
-                <button key={label} onClick={() => setLightbox(videoSrc)} className="group text-left">
+              {videos.map(([src, label, videoSrc], idx) => (
+                <button key={idx} onClick={() => setLightbox(videoSrc)} className="group text-left">
                   <div className="relative aspect-[320/157] overflow-hidden bg-black">
                     <video
                       src={videoSrc}
@@ -288,14 +358,14 @@ const WorksPage = () => {
         <section id="photography" className="container-x pt-16 sm:pt-24 lg:pt-[147px] pb-20 sm:pb-28 lg:pb-[250px] scroll-mt-28">
           <div className="lg:px-[37px]">
             <h2 className="text-[52px] sm:text-[80px] lg:text-[120px] font-extrabold tracking-[-0.05em] text-brand-yellow leading-none">
-              Photography ↓
+              {worksContent.photography?.sectionTitle || "Photography ↓"}
             </h2>
             <div className="mt-10 sm:mt-16 lg:mt-[120px] flex flex-col sm:flex-row sm:items-end justify-between gap-2">
               <h2 className="text-[28px] sm:text-[40px] leading-none font-extrabold tracking-[-0.05em] text-brand-blue">
                 {cat} Photography
               </h2>
               <p className="text-[13px] sm:text-[16px] font-medium tracking-[-0.05em] text-brand-slate">
-                *Click on thumbnail for large view
+                {worksContent.photography?.caption || "*Click on thumbnail for large view"}
               </p>
             </div>
 
@@ -303,8 +373,8 @@ const WorksPage = () => {
             <div className="mt-4 lg:mt-[32px] grid grid-cols-2 lg:grid-cols-3 gap-x-4 lg:gap-x-[98px] gap-y-5 sm:gap-y-[32px]">
               {Array.from({ length: photos.length / 2 }).map((_, g) => (
                 <div key={g} className="contents lg:grid lg:grid-cols-2 lg:gap-x-[20px]">
-                  {photos.slice(g * 2, g * 2 + 2).map(([src, label]) => (
-                    <button key={label} onClick={() => setLightbox(src)} className="group text-left">
+                  {photos.slice(g * 2, g * 2 + 2).map(([src, label], pIdx) => (
+                    <button key={pIdx} onClick={() => setLightbox(src)} className="group text-left">
                       <div className="aspect-[185/192] overflow-hidden">
                         <img src={src} alt={label} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
                       </div>
@@ -322,6 +392,27 @@ const WorksPage = () => {
     </ModalContext.Provider>
   )
 }
+
+export const query = graphql`
+  query WorksPageWordPressQuery {
+    allWpPage {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
 
 export default WorksPage
 

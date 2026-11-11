@@ -1,9 +1,16 @@
 import * as React from "react"
-import { Link } from "gatsby"
+import { Link, graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
 import SoundVideo from "../components/SoundVideo"
+import {
+  DEFAULT_ABOUT_CONTENT,
+  parseAboutFromWpPage,
+  findAboutPageNode,
+  fetchLiveWpAbout,
+  getCachedWpAbout,
+} from "../utils/wpPagesContent"
 
 import heroVideo from "../images/about/hero-video.png"
 import pocketLogoWide from "../images/about/pocket-logo-wide.png"
@@ -25,6 +32,9 @@ import logoBusinessInsider from "../images/logo-businessinsider.png"
 import logoGymGroup from "../images/logo-gymgroup.png"
 import logoTelegraph from "../images/logo-telegraph.png"
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
 const MailIcon = ({ className = "h-4 w-4" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -33,13 +43,13 @@ const MailIcon = ({ className = "h-4 w-4" }) => (
 )
 
 /* ================= 1. HERO (Exact Figma 1920 #2009:2130) ================= */
-const Hero = () => {
+const Hero = ({ content = DEFAULT_ABOUT_CONTENT.hero }) => {
   const { setIsOpen } = React.useContext(ModalContext)
   return (
     <section className="container-x pt-12 sm:pt-20 lg:pt-[154px] pb-16 sm:pb-24 lg:pb-[145px]">
       <div className="mx-auto max-w-[1177px]">
         <h1 className="text-[44px] sm:text-[72px] lg:text-[120px] font-normal leading-none tracking-[-0.05em] text-brand-slate">
-          About us at
+          {content.heading}
         </h1>
         <img
           src={pocketLogoWide}
@@ -51,21 +61,19 @@ const Hero = () => {
           <div>
             <div className="w-full lg:w-[598px] lg:h-[352px] aspect-[598/352] overflow-hidden bg-black">
               <SoundVideo
-                src="/videos/showreel.mp4"
+                src={content.videoUrl || "/videos/showreel.mp4"}
                 poster={heroVideo}
                 className="w-full h-full object-cover"
               />
             </div>
             <p className="mt-0 text-[13px] sm:text-[16px] leading-[32px] font-medium tracking-[-0.05em] text-brand-slate">
-              *Click on Video to toggle sound
+              {content.videoCaption}
             </p>
           </div>
 
           <div className="flex flex-col items-start lg:items-end lg:text-right">
             <p className="w-full lg:w-[517px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[2] tracking-[-0.05em] text-brand-slate">
-              Find out more about our production team, what we stand
-              <br className="hidden lg:inline" /> for and why you would choose us for your next video
-              <br className="hidden lg:inline" /> production or photography shoot.
+              {content.description}
             </p>
             <button
               onClick={() => setIsOpen(true)}
@@ -73,7 +81,7 @@ const Hero = () => {
               style={{ boxShadow: "3px 3px 6px 0px rgba(82, 110, 135, 1)" }}
             >
               <MailIcon className="h-5 w-5 shrink-0" />
-              <span>I’D LIKE TO CHAT</span>
+              <span>{content.buttonText}</span>
             </button>
           </div>
         </div>
@@ -83,29 +91,26 @@ const Hero = () => {
 }
 
 /* ================= 2. VIDEO PRODUCTION & PHOTOGRAPHY (Blue #2017:1058) ================= */
-const Intro = () => {
+const Intro = ({ content = DEFAULT_ABOUT_CONTENT.intro }) => {
   const { setIsOpen } = React.useContext(ModalContext)
   return (
     <section className="bg-brand-blue">
       <div className="container-x py-16 sm:py-24 lg:pt-[191px] lg:pb-[167px]">
         <h2 className="max-w-[1453px] text-[34px] sm:text-[52px] lg:text-[80px] font-extrabold leading-[1.0] tracking-[-0.05em] text-white">
-          Video production and photography at Pocket Creatives
+          {content.heading}
         </h2>
         <div className="mt-10 sm:mt-14 lg:mt-[60px] grid gap-10 lg:grid-cols-[610px_689px] lg:justify-between items-start">
           <div>
-            <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[2] tracking-[-0.05em] text-black">
-              Pocket Creatives is a video production and photography team built on over 16 years of experience in the
-              visual and creative industries. Run by co-owners <b className="font-bold text-white">Steven</b>,{" "}
-              <b className="font-bold text-white">Haider</b> and <b className="font-bold text-white">Lauren</b>, our
-              team loves producing great video and photography, and we like to think that it shows in the work we
-              deliver.
+            <div className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[2] tracking-[-0.05em] text-black">
+              <span
+                key={content.paragraph1Html}
+                dangerouslySetInnerHTML={{ __html: content.paragraph1Html }}
+              />
               <br />
-              We’ve worked hard to assemble a talented team who can deliver high quality video production services, as
-              well as video and photography content creation.
+              <span>{content.paragraph2}</span>
               <br />
-              Drop us a mail, we’re a friendly bunch and are more than happy to chat about what we could offer on your
-              next project!
-            </p>
+              <span>{content.paragraph3}</span>
+            </div>
             <button
               onClick={() => setIsOpen(true)}
               aria-label="Email us"
@@ -120,9 +125,9 @@ const Intro = () => {
               className="absolute left-0 top-0 lg:-left-[57px] lg:-top-[77px] z-10 flex h-[90px] w-[90px] sm:h-[110px] sm:w-[110px] lg:h-[135px] lg:w-[135px] -rotate-6 items-center justify-center rounded-full bg-brand-yellow text-center text-[16px] sm:text-[20px] font-bold leading-tight tracking-[-0.05em] text-black"
               style={{ boxShadow: "3px 3px 6px 0px rgba(82, 110, 135, 1)" }}
             >
-              This is
+              {content.badgeLine1}
               <br />
-              us...
+              {content.badgeLine2}
             </span>
             <img
               src={teamSofa}
@@ -137,29 +142,7 @@ const Intro = () => {
 }
 
 /* ================= 3. OUR WORKS (Click Carousel #2172:4493) ================= */
-const works = [
-  {
-    img: "/videos/soap-glory-comp.gif",
-    poster: carSoapGlory,
-    tag: "Soap And Glory",
-    title: "People & Portrait Photography",
-    text: "Expertly delivered product photography and product videos. From simple pack shots to creative product photography and engaging product video, high quality imagery is designed to entice the viewer and convert to a customer.",
-  },
-  {
-    img: carHairo,
-    video: "/videos/hairo-advert.mp4",
-    tag: "HairO Brand Advert",
-    title: "Beauty Video Production",
-    text: "Expertly crafted cosmetics, personal care and beauty video and beauty photography. Creating both usage and creative product content, high quality photography shows your beauty brand in its best light.",
-  },
-  {
-    img: carSmiles,
-    video: "/videos/beauty-showreel.mp4",
-    tag: "Smiles Alliance",
-    title: "People & Portrait Photography",
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras gravida metus eget orci iaculis, eu ornare augue auctor. Donec at sagittis magna.",
-  },
-]
+const defaultWorkPosters = [carSoapGlory, carHairo, carSmiles]
 
 const WorkCard = ({ item, big, onClick }) => {
   const videoRef = React.useRef(null)
@@ -258,8 +241,13 @@ const WorkCard = ({ item, big, onClick }) => {
   )
 }
 
-const OurWorks = () => {
+const OurWorks = ({ content = DEFAULT_ABOUT_CONTENT.ourWorks }) => {
   const [active, setActive] = React.useState(1)
+  const works = (content.items || DEFAULT_ABOUT_CONTENT.ourWorks.items).map((item, idx) => ({
+    ...item,
+    img: item.img || defaultWorkPosters[idx] || carSoapGlory,
+    poster: defaultWorkPosters[idx] || carSoapGlory,
+  }))
   const n = works.length
   const left = (active - 1 + n) % n
   const right = (active + 1) % n
@@ -267,7 +255,7 @@ const OurWorks = () => {
   return (
     <section className="container-x pt-16 sm:pt-24 lg:pt-[139px] pb-16 sm:pb-24 lg:pb-[101px]">
       <h2 className="text-center text-[48px] sm:text-[72px] lg:text-[120px] font-bold tracking-[-0.05em] text-brand-blue leading-[1.2]">
-        Our Works
+        {content.heading}
       </h2>
       <div className="mt-10 sm:mt-16 lg:mt-[77px] flex items-center justify-center gap-4 sm:gap-8 lg:gap-[59px]">
         <div className="hidden md:block">
@@ -280,7 +268,7 @@ const OurWorks = () => {
       </div>
       <div className="mx-auto mt-1.5 flex w-[280px] sm:w-[340px] lg:w-[430px] items-center justify-between">
         <p className="text-[13px] sm:text-[16px] leading-[32px] font-medium tracking-[-0.05em] text-brand-slate">
-          *Click on Video to toggle sound
+          {content.videoCaption}
         </p>
         <div className="flex gap-1.5 md:hidden">
           {works.map((_, i) => (
@@ -298,30 +286,22 @@ const OurWorks = () => {
 }
 
 /* ================= 4. VIDEO COMPANY / PHOTO COMPANY (#2040:983) ================= */
-const Companies = () => (
+const Companies = ({ content = DEFAULT_ABOUT_CONTENT.companies }) => (
   <section className="pb-16 sm:pb-24 lg:pb-[118px]">
     {/* Row 1: text left (x=241, w=740), image bleeds to the right edge (x=1165, w=755, h=529) */}
     <div className="grid gap-8 lg:grid-cols-[1fr_755px] items-start">
       <div className="container-x lg:max-w-none lg:pl-[241px] lg:pr-8">
         <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-normal leading-[1.0] tracking-[-0.05em] text-brand-slate">
-          We’re a{" "}
+          {content.videoHeadingPrefix}{" "}
           <Link to="/videography-services" className="font-extrabold text-brand-blue hover:underline">
-            video production
+            {content.videoHeadingLink}
           </Link>
           <br />
-          company
+          {content.videoHeadingSuffix}
         </h3>
         <div className="mt-8 sm:mt-12 lg:mt-[80px] lg:w-[740px] space-y-6 text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] tracking-[-0.05em] text-brand-slate text-justify">
-          <p>
-            As a video production company, we deliver high quality and engaging content for commercial, corporate,
-            and promotional use. We create TV adverts, brand films, promotional videos, crowdfunding campaign videos,
-            and video content for social media. Our professional video team knows how to craft the right elements
-            together to convey your messages and tell your story.
-          </p>
-          <p>
-            What are you looking for in a video production company? If it’s a creative team who are trustworthy,
-            knowledgeable, enjoyable to work with and well-priced, then we might just be the right fit for you.
-          </p>
+          <p>{content.videoPara1}</p>
+          <p>{content.videoPara2}</p>
         </div>
       </div>
       <img
@@ -340,23 +320,15 @@ const Companies = () => (
       />
       <div className="order-1 lg:order-2 container-x lg:max-w-none lg:pl-[150px] lg:pt-[118px] lg:pr-[190px]">
         <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-normal leading-[1.0] tracking-[-0.05em] text-brand-slate">
-          and a{" "}
+          {content.photoHeadingPrefix}{" "}
           <Link to="/photography-services" className="font-extrabold text-brand-blue hover:underline">
-            photography company too
+            {content.photoHeadingLink}
           </Link>
-          …
+          {content.photoHeadingSuffix}
         </h3>
         <div className="mt-8 sm:mt-12 lg:mt-[68px] lg:w-[816px] space-y-6 text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] tracking-[-0.05em] text-brand-slate text-justify">
-          <p>
-            As a photography company, we’re able to squeeze every pixel to deliver images that perform. A photographer
-            must know how to communicate, and view a project from different perspectives, knowing how to create images
-            that jump out and catch attention. We strive to do just that. We offer product photography, people
-            photography and lifestyle photography across a wide range of sectors.
-          </p>
-          <p>
-            As a content creation company, we know how to give you the best of both worlds: through the use of video
-            production to tell a story across multiple shots, or where a single photograph has to say it all.
-          </p>
+          <p>{content.photoPara1}</p>
+          <p>{content.photoPara2}</p>
         </div>
       </div>
     </div>
@@ -364,28 +336,17 @@ const Companies = () => (
 )
 
 /* ================= 5. WHY WORK WITH US (Yellow + Blue Drag Strip #2106:754) ================= */
-const whyCards = [
-  ["We care about how it feels", ["Good content matters—but so does the experience. From first chat to final edit, we keep things easy, honest, and collaborative. We listen, we guide, and we make sure the process feels smooth from start to finish."]],
-  ["We work around you", ["Every client’s different, so we don’t approach projects the same way. We’re flexible with pricing, clear about costs, and always happy to find smart ways to make your budget go further."]],
-  ["We make visuals that speak", ["We don’t just shoot pretty pictures.  We tell stories.  We use styling, locations, and talent to help your brand stand out and feel real. We want to help you surpass expectations and achieve more than simply keeping up with your competition."]],
-  ["Values You Can Feel", ["We treat every client like a partner and stay flexible across industries.  We work fast when needed, stay kind always, and commit to working transparently.  We believe in being kind, honest, and easy to work with because that’s how great work gets made."]],
-  ["We understand urgency!", ["We know how important it is for you to have it done yesterday and capitalise on the now.", "Getting your content in front of your audience at the right time is so important, particularly in today’s trend and time-driven world. Good planning, organisation and communication is the key."]],
-  ["We want to help you stand out", ["Our video and photography content says more, shouts louder, and travels further. We want to stay true to the quote that an image is worth a thousand words… and counting!", "There’s a time and a place for simple product images isolated against white backgrounds, and we offer those as well. But to get the best from us, we want to make use of locations, props, styling, and models as they all help to tell your story for a greater visual impact."]],
-  ["We always put our clients first", ["You’re more important to us than anything.", "We wouldn’t exist without you, we know that, so we’ll do our very best to make sure that you’re always happy with our video and photography content, and you want to work with us time and again. We’ve built long-standing and trustworthy relationships with our clients since we started, so that we can partner each other as we grow."]],
-  ["We champion young talent", ["Fresh ideas, energy and drive, and a sense of ownership and responsibility, guided by experience… at your disposal.", "So whether you’re looking for content creation for social media, event filming in London, or just a video editor, we can deliver the talent.", "This year, we have also been a part of the government’s Kickstart scheme to help a new entrant into the industry."]],
-]
-
-const WhyUs = () => {
+const WhyUs = ({ content = DEFAULT_ABOUT_CONTENT.whyUs }) => {
   const drag = useDragScroll()
+  const cards = content.cards || DEFAULT_ABOUT_CONTENT.whyUs.cards
   return (
     <section className="bg-brand-yellow pt-16 sm:pt-24 lg:pt-[101px] pb-16 sm:pb-24 lg:pb-[146px]">
       <div className="container-x">
         <h2 className="lg:-ml-[24px] text-[44px] sm:text-[72px] lg:text-[120px] font-bold leading-[1.2] tracking-[-0.05em] text-white">
-          Why work with us?
+          {content.heading}
         </h2>
         <p className="mt-6 lg:mt-[23px] max-w-[1443px] text-[18px] sm:text-[24px] lg:text-[30px] font-medium leading-[1.43] tracking-[-0.05em] text-black">
-          We make content that feels real and works hard. You get a team that listens, adapts, and delivers with care,
-          creativity, and no fuss. We’re here to help you stand out without making things complicated.
+          {content.subtitle}
         </p>
       </div>
       {/* Blue strip starts at x=216 and bleeds off the right side */}
@@ -394,13 +355,13 @@ const WhyUs = () => {
           {...drag}
           className="no-scrollbar flex overflow-x-auto cursor-grab active:cursor-grabbing select-none py-10 sm:py-12 lg:pt-[48px] lg:pb-[48px] pl-6 sm:pl-12 lg:pl-[64px]"
         >
-          {whyCards.map(([title, paras]) => (
-            <div key={title} className="w-[280px] sm:w-[350px] lg:w-[394px] shrink-0 pr-8 sm:pr-[40px] text-white">
+          {cards.map((card, idx) => (
+            <div key={idx} className="w-[280px] sm:w-[350px] lg:w-[394px] shrink-0 pr-8 sm:pr-[40px] text-white">
               <h3 className="text-[22px] sm:text-[26px] lg:text-[30px] font-bold leading-[1.05] tracking-[-0.05em]">
-                {title}
+                {card.title}
               </h3>
               <div className="mt-6 space-y-4 text-[15px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] tracking-[-0.05em]">
-                {paras.map((t, i) => (
+                {(card.paragraphs || []).map((t, i) => (
                   <p key={i}>{t}</p>
                 ))}
               </div>
@@ -413,25 +374,22 @@ const WhyUs = () => {
 }
 
 /* ================= 6. BEHIND THE SCENES (#2106:1160) ================= */
-const BehindScenes = () => (
+const BehindScenes = ({ content = DEFAULT_ABOUT_CONTENT.behindScenes }) => (
   <section className="mx-auto w-full max-w-[1563px] px-5 sm:px-9 lg:px-0 pt-16 sm:pt-24 lg:pt-[113px] pb-16 sm:pb-24 lg:pb-[113px]">
-    <p className="max-w-[1411px] text-[22px] sm:text-[30px] lg:text-[40px] font-normal leading-[1.2] tracking-[-0.05em] text-black lg:pl-[69px]">
-      Want to know a bit more about who we work with, and <b className="font-bold">what makes a ‘Pocket Person’?</b> Go
-      behind the scenes to see{" "}
-      <Link to="/how-we-work" className="underline hover:text-brand-blue transition">
-        how we work
-      </Link>{" "}
-      in action…
-    </p>
+    <p
+      key={content.introHtml}
+      className="max-w-[1411px] text-[22px] sm:text-[30px] lg:text-[40px] font-normal leading-[1.2] tracking-[-0.05em] text-black lg:pl-[69px]"
+      dangerouslySetInnerHTML={{ __html: content.introHtml }}
+    />
     <div className="mt-8 sm:mt-14 lg:mt-[84px] bg-black overflow-hidden">
       <SoundVideo
-        src="/videos/ayumi-bts.mp4"
+        src={content.videoUrl || "/videos/ayumi-bts.mp4"}
         poster={bts}
         className="w-full lg:w-[1563px] lg:h-[738px] aspect-[1563/738] object-cover"
       />
     </div>
     <p className="mt-0 text-[13px] sm:text-[16px] leading-[32px] font-medium tracking-[-0.05em] text-brand-slate">
-      *Click on Video to toggle sound
+      {content.videoCaption}
     </p>
   </section>
 )
@@ -443,28 +401,20 @@ const logos = [
   [logoBusinessInsider, "Business Insider"], [logoGymGroup, "The Gym Group"], [logoTelegraph, "The Telegraph"],
 ]
 
-const WhoWeWorkWith = () => (
+const WhoWeWorkWith = ({ content = DEFAULT_ABOUT_CONTENT.whoWeWorkWith }) => (
   <section className="bg-brand-blue">
     <div className="container-x py-16 sm:py-24 lg:pt-[241px] lg:pb-[159px]">
       <h2 className="lg:-ml-[21px] text-[44px] sm:text-[72px] lg:text-[120px] font-bold leading-[1.2] tracking-[-0.05em] text-white">
-        Who We Work With
+        {content.heading}
       </h2>
       <div className="mt-8 sm:mt-12 lg:mt-[34px] grid gap-10 lg:grid-cols-[638px_632px] lg:gap-[78px] lg:pl-[48px]">
         <div className="space-y-6 text-[16px] sm:text-[18px] lg:text-[20px] font-bold leading-[1.2] tracking-[-0.05em] text-white">
-          <p>
-            We have provided video and photography services to a huge variety of clients in our history, from
-            crowdfunders and startups through to more established names and global businesses. We love that mix, and
-            being entrusted with the visuals for clients of any size is extremely satisfying.
-          </p>
-          <p>
-            We work with most clients directly, and we’re also able to provide our services to agencies and other
-            creative companies who don’t have access to video and photography services in house.
-          </p>
-          <p>
-            We’re very proud to have worked with known clients such as{" "}
-            <span className="bg-brand-yellow px-1.5 font-bold text-black">Prestige Flowers</span> and many more
-            emerging names that you’ll come to know very soon.
-          </p>
+          <p>{content.para1}</p>
+          <p>{content.para2}</p>
+          <p
+            key={content.para3Html}
+            dangerouslySetInnerHTML={{ __html: content.para3Html }}
+          />
         </div>
         <div className="grid grid-cols-3 gap-2.5 sm:gap-4 max-w-[632px]">
           {logos.map(([src, alt]) => (
@@ -481,9 +431,10 @@ const WhoWeWorkWith = () => (
             className="col-start-3 flex aspect-[2/1] lg:h-[100px] items-center justify-end rounded-[12px] sm:rounded-[16px] bg-brand-yellow p-2 sm:p-4 text-right text-[11px] sm:text-[16px] lg:text-[20px] font-medium leading-[1.2] tracking-normal text-black hover:brightness-105 transition"
             style={{ boxShadow: "0px 4px 4px rgba(0,0,0,0.12)" }}
           >
-            <span>
-              You can see what they say about us <span className="underline">here</span>
-            </span>
+            <span
+              key={content.ctaTextHtml}
+              dangerouslySetInnerHTML={{ __html: content.ctaTextHtml }}
+            />
           </Link>
         </div>
       </div>
@@ -492,16 +443,6 @@ const WhoWeWorkWith = () => (
 )
 
 /* ================= 8. OUR STORY (Timeline Drag Scroll #2187:1714) ================= */
-const story = [
-  { type: "year", label: "2017" },
-  { type: "dot", pos: "below", text: "Steven’s professional history started in broadcasting, supporting mainstream television programmes such as BBC’s Watchdog, Crimewatch and Horizon and leading a 10-person team running 24/7 to make this happen." },
-  { type: "dot", pos: "above", text: "But photography and video production was always the passion, and he burnt all the hours in the day running a small, innovative corporate video production company alongside called Screensaver which could boast clients such as Tower Bridge, the Museum of London and the National Portrait Gallery. This paved the way to progress full time into the production world and merged into Tailwind Media into 2010." },
-  { type: "dot", pos: "below", text: "For 6 years, Steven oversaw the production team, making impressive in-roads into the UK corporate video market, working with some of the country’s biggest names. Highlights would include a huge change campaign for Arcadia; helping to update the internal communications video magazine for electronics giant Philips, working with pop star Olly Murs for the Pringles 25th birthday adverts, and overseeing a multitude of projects for Tesco, Currys PC World and Groupon to name just a few." },
-  { type: "dot", pos: "above", text: "2015 saw the creation of SMC, after Steven wanted to take a different direction, by offering both video and photography. Haider Romero Perez and Lauren Hodge were invited to join, bringing a wealth of skill, enthusiasm, and drive and within 2 years have become co-owners of the newly incorporated Pocket Creatives." },
-  { type: "dot", pos: "below", text: "“SMC provided a wonderful opportunity to meet new business owners and establish ourselves in new markets, offering new video and photography services and building a friendly and creative business where we’re building long-term working relationships with our clients. Pocket Creatives couldn’t have been launched without the faith and trust shown in us by our clients, and we look forward to growing alongside them over the years to come.”" },
-  { type: "year", label: "2025", text: "Now, embarking on our 6th year in business together, we’ve reached one milestone after the next. We boast an enviable client list, with impressive client retention numbers and have built a a genuinely wonderful team around us." },
-]
-
 const StoryText = ({ children, large }) => (
   <p
     className={
@@ -514,21 +455,37 @@ const StoryText = ({ children, large }) => (
   </p>
 )
 
-const OurStory = () => {
+const OurStory = ({ content = DEFAULT_ABOUT_CONTENT.ourStory }) => {
   const drag = useDragScroll()
   const scrollNext = () => drag.ref.current?.scrollBy({ left: 500, behavior: "smooth" })
+
+  const milestones = content.milestones || DEFAULT_ABOUT_CONTENT.ourStory.milestones
+  const story = [
+    { type: "year", label: content.startYear || "2017" },
+    { type: "dot", pos: "below", text: milestones[0] },
+    { type: "dot", pos: "above", text: milestones[1] },
+    { type: "dot", pos: "below", text: milestones[2] },
+    { type: "dot", pos: "above", text: milestones[3] },
+    { type: "dot", pos: "below", text: milestones[4] },
+    {
+      type: "year",
+      label: content.endYear || "2025",
+      text: content.endText || DEFAULT_ABOUT_CONTENT.ourStory.endText,
+    },
+  ]
 
   return (
     <section className="bg-white py-16 sm:py-24 lg:pt-[165px] lg:pb-[54px]">
       <div className="container-x">
         <div className="mx-auto max-w-[1177px]">
           <h2 className="text-[44px] sm:text-[72px] lg:text-[120px] font-bold leading-[1.2] tracking-[-0.05em] text-brand-blue">
-            Our Story
+            {content.heading}
           </h2>
-          <p className="mt-6 lg:mt-[36px] max-w-[721px] text-[20px] sm:text-[28px] lg:text-[40px] font-medium leading-[1.2] tracking-[-0.05em] text-brand-slate">
-            <b className="font-bold">Pocket Creatives</b> launched in the winter of 2017, formed as a limited company following the team working
-            under the name of Steven Mayatt Creative since 2015. Pocket is the next step in our evolution.
-          </p>
+          <p
+            key={content.introHtml}
+            className="mt-6 lg:mt-[36px] max-w-[721px] text-[20px] sm:text-[28px] lg:text-[40px] font-medium leading-[1.2] tracking-[-0.05em] text-brand-slate"
+            dangerouslySetInnerHTML={{ __html: content.introHtml }}
+          />
         </div>
       </div>
 
@@ -595,24 +552,75 @@ const OurStory = () => {
 }
 
 /* ================= PAGE ================= */
-const AboutPage = () => {
+const AboutPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const buildTimePageNodes = data?.allWpPage?.nodes || []
+  const buildTimeAboutNode = findAboutPageNode(buildTimePageNodes)
+  const [aboutContent, setAboutContent] = React.useState(() =>
+    parseAboutFromWpPage(buildTimeAboutNode)
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    const cached = getCachedWpAbout()
+    if (cached) {
+      setAboutContent(cached)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpAbout()
+      .then(liveContent => {
+        if (isMounted && liveContent) {
+          setAboutContent(liveContent)
+        }
+      })
+      .catch(() => {
+        // Keep cached or build-time fallback if offline
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
       <Layout active="about" onContactClick={() => setIsOpen(true)}>
         <ContactModal />
-        <Hero />
-        <Intro />
-        <OurWorks />
-        <Companies />
-        <WhyUs />
-        <BehindScenes />
-        <WhoWeWorkWith />
-        <OurStory />
+        <Hero content={aboutContent.hero} />
+        <Intro content={aboutContent.intro} />
+        <OurWorks content={aboutContent.ourWorks} />
+        <Companies content={aboutContent.companies} />
+        <WhyUs content={aboutContent.whyUs} />
+        <BehindScenes content={aboutContent.behindScenes} />
+        <WhoWeWorkWith content={aboutContent.whoWeWorkWith} />
+        <OurStory content={aboutContent.ourStory} />
       </Layout>
     </ModalContext.Provider>
   )
 }
+
+export const query = graphql`
+  query AboutPageWordPressQuery {
+    allWpPage {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
 
 export default AboutPage
 
