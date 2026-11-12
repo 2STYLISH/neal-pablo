@@ -1,7 +1,15 @@
 import * as React from "react"
+import { graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import SoundVideo from "../components/SoundVideo"
+import {
+  DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT,
+  parsePhotographyServicesFromWpPage,
+  findPhotographyServicesPageNode,
+  fetchLiveWpPhotographyServices,
+  getCachedWpPhotographyServices,
+} from "../utils/wpPagesContent"
 
 import heroVideoThumb from "../images/photography/hero-video-thumb.png"
 import gridLeft1 from "../images/photography/grid-left-1.png"
@@ -16,8 +24,43 @@ import howWeWorkImg from "../images/photography/how-we-work.png"
 import technicallySpeakingImg from "../images/photography/technically-speaking.png"
 import wholePackageImg from "../images/photography/whole-package.png"
 
-const PhotographyServicesPage = () => {
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
+const PhotographyServicesPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const buildTimePageNodes = data?.allWpPage?.nodes || []
+  const buildTimeNode = findPhotographyServicesPageNode(buildTimePageNodes)
+  const [pageContent, setPageContent] = React.useState(() =>
+    parsePhotographyServicesFromWpPage(buildTimeNode)
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    const cached = getCachedWpPhotographyServices()
+    if (cached) {
+      setPageContent(cached)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpPhotographyServices()
+      .then(liveContent => {
+        if (isMounted && liveContent) {
+          setPageContent(liveContent)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const hero = pageContent.hero || DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT.hero
+  const gridSection = pageContent.gridSection || DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT.gridSection
+  const ctaBand = pageContent.ctaBand || DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT.ctaBand
+  const details = pageContent.details || DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT.details
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -29,23 +72,23 @@ const PhotographyServicesPage = () => {
           <div className="mx-auto max-w-[1920px] px-5 sm:px-9 lg:px-[310px]">
             {/* Heading (#3599:1832) */}
             <h1 className="text-[48px] sm:text-[80px] lg:text-[120px] font-bold leading-[1] tracking-[-0.05em] text-white">
-              Photography Services
+              {hero.heading}
             </h1>
 
             {/* Subheading (#3599:1834 + #3599:1833) */}
             <div className="mt-2 lg:mt-[4px] flex flex-wrap items-baseline gap-x-3">
               <span className="text-[24px] sm:text-[32px] lg:text-[40px] font-medium leading-[44px] tracking-[-0.05em] text-white">
-                available from
+                {hero.subheadingPrefix}
               </span>
               <span className="text-[24px] sm:text-[32px] lg:text-[40px] font-bold leading-[44px] tracking-[-0.05em] text-white lg:translate-y-[20px]">
-                POCKET CREATIVES
+                {hero.subheadingBrand}
               </span>
             </div>
 
             {/* Hero Video / Image (#3599:2053, x:310, y:365, w:1300, h:495) */}
             <div className="mt-8 lg:mt-[36px] w-full lg:w-[1300px] lg:h-[495px] overflow-hidden bg-black">
               <SoundVideo
-                src="/videos/water-texture-bts.mp4"
+                src={hero.videoUrl || "/videos/water-texture-bts.mp4"}
                 poster={heroVideoThumb}
                 className="w-full h-full object-cover"
               />
@@ -53,7 +96,7 @@ const PhotographyServicesPage = () => {
 
             {/* Video Caption (#3599:2054, x:310, y:877) */}
             <p className="mt-2 lg:mt-[17px] text-[14px] sm:text-[16px] font-medium leading-[32px] tracking-[-0.05em] text-white">
-              *Click on Video to toggle sound
+              {hero.videoCaption}
             </p>
 
             {/* Bottom 2-Column Intro (#3599:1842 & #3599:1835) */}
@@ -71,9 +114,7 @@ const PhotographyServicesPage = () => {
               {/* Right body text + yellow button (#3599:1835 & #3599:1838, x:1039, y:893, w:571) */}
               <div className="lg:-mt-[16px] max-w-[571px] shrink-0">
                 <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-white text-justify">
-                  We put quality and creativity at the heart of what we do, providing high quality and striking imagery
-                  to use for websites, editorial, PR, marketing, advertising and social media. Take a look at some
-                  examples of our photography below and then reach out to see how we might be able to help you.
+                  {hero.rightText}
                 </p>
 
                 <button
@@ -81,7 +122,7 @@ const PhotographyServicesPage = () => {
                   onClick={() => setIsOpen(true)}
                   className="mt-6 lg:mt-[16px] inline-flex w-[199px] h-[48px] items-center justify-center bg-brand-yellow text-[20px] font-bold leading-[24px] tracking-[-0.05em] text-black hover:brightness-105 transition"
                 >
-                  Have questions?
+                  {hero.buttonText || "Have questions?"}
                 </button>
               </div>
             </div>
@@ -97,21 +138,14 @@ const PhotographyServicesPage = () => {
                 {/* Yellow "Photography" box (#3599:1858, w:646, h:122) */}
                 <div className="w-full lg:w-[646px] h-[90px] sm:h-[110px] lg:h-[122px] bg-brand-yellow flex items-center justify-center">
                   <h2 className="text-[44px] sm:text-[64px] lg:text-[80px] font-extrabold leading-[80px] tracking-[-0.05em] text-black">
-                    Photography
+                    {gridSection.leftBoxTitle || "Photography"}
                   </h2>
                 </div>
 
                 {/* Left Description (#3599:1826, y:1582, w:646, h:240) */}
                 <div className="mt-8 lg:mt-[60px] lg:w-[646px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-brand-slate text-justify space-y-6">
-                  <p>
-                    Whether you’re promoting food and drink, beauty and cosmetics, showcasing tech, products, property
-                    or anything else, a visually impactful approach is always our priority when delivering our
-                    professional photography services.
-                  </p>
-                  <p>
-                    We also have extensive experience working with people, capturing corporate headshots, lifestyle
-                    imagery and stunning portraiture, as well as the atmosphere of events.
-                  </p>
+                  <p>{gridSection.leftPara1}</p>
+                  <p>{gridSection.leftPara2}</p>
                 </div>
 
                 {/* Left 2x2 Image Grid (#3599:1851, y:1882, w:647, h:647) */}
@@ -175,17 +209,13 @@ const PhotographyServicesPage = () => {
                     is perfectly equipped to capture clean, isolated product images for e-commerce, through to
                     carefully crafted, styled and propped shots that look good enough to eat.
                   </p>
-                  <p>
-                    If your photography assignment requires a larger studio space or an interesting location to bring
-                    your products to life, then we can jump in the car and bring the equipment to you, or organise
-                    everything on your behalf to provide a completely turn-key photography solution.
-                  </p>
+                  <p>{gridSection.rightPara2}</p>
                 </div>
 
                 {/* Blue "Services" box (#3599:1859, x:984, y:2436, w:631, h:88) */}
                 <div className="mt-8 lg:mt-[44px] lg:ml-[2px] w-full lg:w-[631px] h-[76px] sm:h-[84px] lg:h-[88px] bg-brand-blue flex items-center justify-center">
                   <h2 className="text-[44px] sm:text-[64px] lg:text-[80px] font-extrabold leading-[80px] tracking-[-0.05em] text-white">
-                    Services
+                    {gridSection.rightBoxTitle || "Services"}
                   </h2>
                 </div>
               </div>
@@ -200,7 +230,7 @@ const PhotographyServicesPage = () => {
               {/* Left Heading (#3599:1878, w:583, h:320) */}
               <div className="max-w-[583px] shrink-0">
                 <h2 className="text-[40px] sm:text-[60px] lg:text-[80px] font-extrabold leading-[1] tracking-[-0.05em] text-black">
-                  Ready to see what we could do with your next project?
+                  {ctaBand.heading}
                 </h2>
               </div>
 
@@ -273,7 +303,7 @@ const PhotographyServicesPage = () => {
                     type="submit"
                     className="w-[188px] h-[42px] rounded-[16px] bg-brand-blue text-[20px] font-extrabold leading-[20px] tracking-[-0.05em] text-white hover:brightness-110 transition"
                   >
-                    Send
+                    {ctaBand.buttonText || "Send"}
                   </button>
                 </div>
               </form>
@@ -296,23 +326,12 @@ const PhotographyServicesPage = () => {
                 </div>
                 <div className="w-full lg:w-[693px] lg:pt-[48px] text-brand-slate">
                   <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[40px] tracking-[-0.05em]">
-                    How we work
+                    {details.howWeWorkHeading}
                   </h3>
                   <div className="mt-6 lg:mt-[40px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-justify space-y-5">
-                    <p>
-                      It’s likely you’ve landed here because you’re looking for a photographer or a photography team to
-                      deliver images for your next campaign or project. Rest assured, we carefully recruit and develop
-                      the talents of our passionate in-house team to deliver stunning imagery, and excellent client
-                      service alongside.
-                    </p>
-                    <p>
-                      All of our editing and retouching is managed in-house too, making sure we retain full control
-                      over the quality of the final product, and giving the ability to work to tight deadlines.
-                    </p>
-                    <p>
-                      If you’re completely new to commissioning photography, we make the process simple and easy for
-                      you, taking the lead at all stages while involving you in the creative narrative.
-                    </p>
+                    <p>{details.howWeWorkPara1}</p>
+                    <p>{details.howWeWorkPara2}</p>
+                    <p>{details.howWeWorkPara3}</p>
                   </div>
                 </div>
               </div>
@@ -321,18 +340,11 @@ const PhotographyServicesPage = () => {
               <div className="flex flex-col-reverse lg:flex-row items-start justify-between gap-8 lg:gap-[79px]">
                 <div className="w-full lg:w-[453px] lg:pt-[56px] text-brand-slate shrink-0">
                   <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[40px] tracking-[-0.05em]">
-                    Technically speaking
+                    {details.techHeading}
                   </h3>
                   <div className="mt-6 lg:mt-[40px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-justify space-y-5">
-                    <p>
-                      When capturing our photography, we trust Canon’s professional sensor technology alongside their
-                      pristine L-Series lenses. They are workhorses that deliver phenomenal image quality at high
-                      resolutions, with gorgeous colour rendition, time and time again.
-                    </p>
-                    <p>
-                      In our photography studio, we choose Pixapro lighting with widespread compatibility across a huge
-                      array of modifiers and shapes to give our clients endless creative choices.
-                    </p>
+                    <p>{details.techPara1}</p>
+                    <p>{details.techPara2}</p>
                   </div>
                 </div>
                 <div className="w-full lg:w-[872px] shrink-0">
@@ -355,22 +367,12 @@ const PhotographyServicesPage = () => {
                 </div>
                 <div className="w-full lg:w-[629px] lg:pt-[51px] text-brand-slate">
                   <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[40px] tracking-[-0.05em]">
-                    The whole package
+                    {details.wholePackageHeading}
                   </h3>
                   <div className="mt-6 lg:mt-[40px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-justify space-y-5">
-                    <p>
-                      Our photographers love making things look great with their camera and magical lighting
-                      combinations.
-                    </p>
-                    <p>
-                      We are also assisted by an enviable array of trusted industry talent who work alongside us on
-                      shoots, such as food and prop stylists, hair and make up artists, set builders and art directors,
-                      along with models and actors when required.
-                    </p>
-                    <p>
-                      Add our access to endless location possibilities to shoot in and we’re confident of being able to
-                      pull the right creative elements together to answer any client brief.
-                    </p>
+                    <p>{details.wholePackagePara1}</p>
+                    <p>{details.wholePackagePara2}</p>
+                    <p>{details.wholePackagePara3}</p>
                   </div>
                 </div>
               </div>
@@ -381,6 +383,21 @@ const PhotographyServicesPage = () => {
     </ModalContext.Provider>
   )
 }
+
+export const query = graphql`
+  query PhotographyServicesPageWordPressQuery {
+    allWpPage {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+      }
+    }
+  }
+`
 
 export default PhotographyServicesPage
 
@@ -393,4 +410,3 @@ export const Head = () => (
     />
   </>
 )
-

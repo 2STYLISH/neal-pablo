@@ -1,7 +1,15 @@
 import * as React from "react"
+import { graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import SoundVideo from "../components/SoundVideo"
+import {
+  DEFAULT_PRICING_CONTENT,
+  parsePricingFromWpPage,
+  findPricingPageNode,
+  fetchLiveWpPricing,
+  getCachedWpPricing,
+} from "../utils/wpPagesContent"
 
 import heroVideoImg from "../images/pricing/hero-video.png"
 import mainVideoImg from "../images/pricing/main-video.png"
@@ -9,11 +17,43 @@ import sliderSquareImg from "../images/pricing/slider-square.png"
 import poundBurstLeft from "../images/pricing/pound-burst-left.png"
 import poundBurstRight from "../images/pricing/pound-burst-right.png"
 
-const PricingPage = () => {
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
+const PricingPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [activeSlide, setActiveSlide] = React.useState("video")
   const [mainPlaying, setMainPlaying] = React.useState(false)
   const mainVideoRef = React.useRef(null)
+
+  const buildTimePageNodes = data?.allWpPage?.nodes || []
+  const buildTimePricingNode = findPricingPageNode(buildTimePageNodes)
+  const [pricingContent, setPricingContent] = React.useState(() =>
+    parsePricingFromWpPage(buildTimePricingNode)
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    const cached = getCachedWpPricing()
+    if (cached) {
+      setPricingContent(cached)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpPricing()
+      .then(liveContent => {
+        if (isMounted && liveContent) {
+          setPricingContent(liveContent)
+        }
+      })
+      .catch(() => {
+        // Keep cached or build-time fallback if offline
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const toggleMainVideo = () => {
     const vid = mainVideoRef.current
@@ -30,6 +70,12 @@ const PricingPage = () => {
       setMainPlaying(false)
     }
   }
+
+  const hero = pricingContent.hero || DEFAULT_PRICING_CONTENT.hero
+  const modular = pricingContent.modular || DEFAULT_PRICING_CONTENT.modular
+  const howItWorks = pricingContent.howItWorks || DEFAULT_PRICING_CONTENT.howItWorks
+  const getInTouch = pricingContent.getInTouch || DEFAULT_PRICING_CONTENT.getInTouch
+  const slider = pricingContent.slider || DEFAULT_PRICING_CONTENT.slider
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -52,29 +98,22 @@ const PricingPage = () => {
               {/* Left Text Column */}
               <div className="max-w-[1000px] lg:max-w-[920px]">
                 <p className="text-[24px] sm:text-[32px] lg:text-[40px] font-bold leading-[1.2] lg:leading-[120px] tracking-[-0.05em] text-black">
-                  Avoiding the taboo:
+                  {hero.eyebrow}
                 </p>
                 <h1 className="mt-1 lg:mt-[3px] text-[44px] sm:text-[72px] lg:text-[120px] font-bold leading-[1] tracking-[-0.05em] text-black lg:w-[1265px] relative z-20">
-                  Pricing for
+                  {hero.headingLine1}
                   <br />
-                  video production
+                  {hero.headingLine2}
                   <br />
-                  and photography
+                  {hero.headingLine3}
                 </h1>
 
                 <div className="mt-8 lg:mt-[42px] max-w-[786px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.25] lg:leading-[20px] tracking-[-0.05em] text-black space-y-4">
+                  <p>{hero.para1}</p>
                   <p>
-                    Price is important to everybody, and we know this is a major factor in deciding who you’ll want to
-                    work with. We like to think that clients work with us for a range of reasons, from our quality of
-                    output to our project management, but getting the budget in the right place is something that we
-                    spend a lot of time on.
-                  </p>
-                  <p>
-                    We can either quote from scratch once we understand your brief, or work to your target spend. This
-                    flexibility makes us a great fit for both small and large clients alike.
+                    {hero.para2}
                     <br />
-                    You can read a bit more below about how we structure our rates for both video production and
-                    photography below, and we’re always here for any queries.
+                    {hero.para3}
                   </p>
                 </div>
               </div>
@@ -83,13 +122,13 @@ const PricingPage = () => {
               <div className="w-full sm:w-[400px] lg:w-[456px] lg:mt-[60px] shrink-0 lg:-ml-[308px]">
                 <div className="w-full lg:w-[456px] h-[480px] lg:h-[643px] overflow-hidden bg-black">
                   <SoundVideo
-                    src="/videos/showreel.mp4"
+                    src={hero.videoUrl || "/videos/showreel.mp4"}
                     poster={heroVideoImg}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <p className="mt-2 text-right text-[14px] sm:text-[16px] font-medium leading-[32px] tracking-[-0.05em] text-brand-slate">
-                  *Click on Video to toggle sound
+                  {hero.videoCaption}
                 </p>
               </div>
             </div>
@@ -102,17 +141,17 @@ const PricingPage = () => {
             {/* Heading & Checkmarks (#4449:2740, x:242, y:1101) */}
             <div className="lg:pl-[2px]">
               <h2 className="text-[36px] sm:text-[56px] lg:text-[80px] font-bold leading-[1.05] tracking-[-0.05em] text-brand-slate">
-                We use a modular pricing model:
+                {modular.heading}
               </h2>
               <ul className="mt-6 lg:mt-[42px] space-y-2 text-[22px] sm:text-[30px] lg:text-[40px] font-medium leading-[1.25] lg:leading-[50px] tracking-[-0.05em] text-brand-slate">
                 <li>
-                  <span className="text-brand-blue font-bold">✓</span> Pay only for what you need
+                  <span className="text-brand-blue font-bold">✓</span> {modular.bullet1}
                 </li>
                 <li>
-                  <span className="text-brand-blue font-bold">✓</span> No matter how large or small your project
+                  <span className="text-brand-blue font-bold">✓</span> {modular.bullet2}
                 </li>
                 <li>
-                  <span className="text-brand-blue font-bold">✓</span> Oh, and no budget overruns!
+                  <span className="text-brand-blue font-bold">✓</span> {modular.bullet3}
                 </li>
               </ul>
             </div>
@@ -125,7 +164,7 @@ const PricingPage = () => {
               >
                 <video
                   ref={mainVideoRef}
-                  src="/videos/james-read-tan.mp4"
+                  src={modular.mainVideoUrl || "/videos/james-read-tan.mp4"}
                   poster={mainVideoImg}
                   loop
                   playsInline
@@ -159,27 +198,20 @@ const PricingPage = () => {
                   className="w-[110px] sm:w-[150px] lg:w-[210px] h-auto absolute -top-10 -left-4 lg:-top-[93px] lg:-left-[69px] pointer-events-none select-none"
                 />
                 <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[1.22] tracking-[-0.05em] text-center max-w-[546px] mx-auto">
-                  Everything you need and no hidden costs.
+                  {modular.card1Title}
                 </h3>
                 <p className="mt-8 lg:mt-[52px] max-w-[497px] mx-auto text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.25] tracking-[-0.05em]">
-                  There are lots of factors that affect the overall price of video production and photography shoots,
-                  such as props, backgrounds, models and locations. This is why there’s no one-size-fits all price,
-                  and most creative agencies won’t put any prices on their websites – as they can be misleading without
-                  a lot of description.
+                  {modular.card1Text}
                 </p>
               </div>
 
               {/* Card 2 (#4449:2743, x:986, y:2324, w:620, h:547) */}
               <div className="relative w-full lg:w-[620px] lg:min-h-[547px] bg-brand-blue px-6 sm:px-12 lg:px-[45px] pt-16 sm:pt-20 lg:pt-[78px] pb-16 text-white">
                 <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[1.22] tracking-[-0.05em] text-center max-w-[546px] mx-auto">
-                  We&apos;ll get you from brief to quote in a flash!
+                  {modular.card2Title}
                 </h3>
                 <p className="mt-8 lg:mt-[52px] max-w-[530px] mx-auto text-[16px] sm:text-[18px] lg:text-[20px] font-normal leading-[1.25] tracking-[-0.05em]">
-                  We will work with you to understand your brief and the full photography and video production
-                  requirements of your project, before delivering a budget breakdown to you at the beginning of the
-                  process. This gives you a fully honest and transparent view of the resources that make up your
-                  project. There’s always room for conversation and tweaks, and we’re also happy to start with your
-                  ideal spend and work backwards.
+                  {modular.card2Text}
                 </p>
                 <img
                   src={poundBurstRight}
@@ -199,52 +231,29 @@ const PricingPage = () => {
               {/* Box 1: Cheap or Expensive? (#4449:2752, x:315, w:849, h:128) */}
               <div className="inline-flex items-center justify-center bg-brand-yellow px-6 sm:px-10 lg:w-[849px] lg:h-[128px] py-4 lg:py-0">
                 <h2 className="text-[36px] sm:text-[56px] lg:text-[80px] font-bold leading-[1.2] tracking-[-0.05em] text-black">
-                  Cheap or Expensive?
+                  {howItWorks.box1Title}
                 </h2>
               </div>
 
               <div className="mt-8 lg:mt-[40px] max-w-[1234px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.25] tracking-[-0.05em] space-y-5">
-                <p>
-                  To give you some context, we aim to be in the middle band in terms of our pricing structure, which
-                  means that our typical daily rates for photography and video production will sit in between those
-                  agencies who work at the very upper end of our industry, with individual freelancers at the lower end
-                  of the pricing range.
-                </p>
-                <p>
-                  It’s important to note that we’re not talking about quality here, just price. We’re often chosen
-                  ahead of the largest of our competitors as we can deliver great quality photography and video
-                  production services for a lower price. This is because we run an efficient setup, with less overheads
-                  and no bloat.
-                </p>
+                <p>{howItWorks.box1Para1}</p>
+                <p>{howItWorks.box1Para2}</p>
               </div>
 
               {/* Box 2: So how does it work? (#4449:2756, x:702, w:847, h:128) */}
               <div className="mt-8 lg:mt-[40px] flex lg:justify-end">
                 <div className="inline-flex items-center justify-center bg-brand-yellow px-6 sm:px-10 lg:w-[847px] lg:h-[128px] py-4 lg:py-0">
                   <h2 className="text-[36px] sm:text-[56px] lg:text-[80px] font-bold leading-[1.2] tracking-[-0.05em] text-black">
-                    So how does it work?
+                    {howItWorks.box2Title}
                   </h2>
                 </div>
               </div>
 
               <div className="mt-8 lg:mt-[40px] lg:pl-[29px] max-w-[1234px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.25] tracking-[-0.05em] space-y-5">
-                <p>
-                  Our setup also makes us attractive to start-ups, those who are crowdfunding, and businesses who still
-                  need great photography and video production, but are working within tighter budgets.
-                </p>
-                <p>
-                  We do this by using modular pricing – knowing that each photography and video production project is
-                  different, you pay for just what you need.
-                </p>
-                <p>
-                  While some clients may need just an hour of photography to capture some simple pack shots for a new
-                  addition to their range, others may need a multiple camera setup for a TV advert to showcase their
-                  brand to the world. We have the ability to quote easily for both ends of that spectrum.
-                </p>
-                <p>
-                  If you already have a total budget available, share that with us and we can work out how to deliver
-                  as much as possible for what you have to spend.
-                </p>
+                <p>{howItWorks.box2Para1}</p>
+                <p>{howItWorks.box2Para2}</p>
+                <p>{howItWorks.box2Para3}</p>
+                <p>{howItWorks.box2Para4}</p>
               </div>
             </div>
           </div>
@@ -257,10 +266,10 @@ const PricingPage = () => {
               {/* Left Text (#4449:2793, x:265, y:4176, w:514) */}
               <div className="lg:pt-[35px] max-w-[514px] shrink-0">
                 <h2 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[1] tracking-[-0.05em] text-brand-blue">
-                  Get In Touch
+                  {getInTouch.heading}
                 </h2>
                 <p className="mt-6 lg:mt-[34px] text-[24px] sm:text-[32px] lg:text-[40px] font-medium leading-[1] tracking-[-0.05em] text-brand-slate">
-                  Drop us a mail, let us know your budget, and we’ll share what we can offer
+                  {getInTouch.subtitle}
                 </p>
               </div>
 
@@ -333,7 +342,7 @@ const PricingPage = () => {
                     type="submit"
                     className="w-[188px] h-[53px] rounded-[16px] bg-brand-yellow text-[20px] font-extrabold tracking-[-0.05em] text-black hover:brightness-105 transition"
                   >
-                    Send
+                    {getInTouch.buttonText || "Send"}
                   </button>
                 </div>
               </form>
@@ -351,7 +360,7 @@ const PricingPage = () => {
             {activeSlide === "video" ? (
               <div>
                 <h2 className="text-[48px] sm:text-[80px] lg:text-[120px] font-bold leading-[1] tracking-[-0.05em]">
-                  Video Production...
+                  {slider.videoHeading}
                 </h2>
 
                 <div className="mt-10 lg:mt-[53px] lg:pl-[17px] flex flex-col lg:flex-row items-start lg:items-center gap-8 lg:gap-[24px]">
@@ -362,37 +371,22 @@ const PricingPage = () => {
                   />
 
                   <div className="max-w-[646px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] lg:leading-[20px] tracking-[-0.05em] space-y-4">
-                    <p>
-                      <strong className="font-bold">Video production</strong> is a more complex process compared with
-                      photography, both in planning, production and the fact that the edit time will span days rather
-                      than hours, as it does it photography.
-                    </p>
-                    <p>
-                      Similarly to a photo shoot, you’ll need to think about the location: from studio spaces to
-                      Airbnbs for lifestyle work, and the consideration for sound as well.
-                    </p>
-                    <p>
-                      We may need a bigger team, if lighting, sound, or set requirements are needed. Additional
-                      equipment such as autocues, specialist lighting and microphones, cameras dedicated to slow motion
-                      may also be considered for more creative briefs.
-                    </p>
-                    <p>
-                      Actors and presenters, hair and makeup, set elements, props and materials, even fashion stylists,
-                      food stylists may required too.
-                    </p>
-                    <p>
-                      Editing often needs multiple days to complete, and we’ll best estimate this for you, allowing for
-                      time to feed back and make changes. We can also include music, sound effects and voiceover.
-                    </p>
-                    <p>
-                      The <strong className="font-bold">Pocket Creatives</strong> team will always provide a full
-                      breakdown when we quote for you, which then makes it easier to see what resources your project
-                      needs to get made.
-                    </p>
-                    <p>
-                      To give you a general idea, a full day of filming with us starts at{" "}
-                      <strong className="font-bold">£940+VAT</strong>.
-                    </p>
+                    <p
+                      key={slider.para1Html}
+                      dangerouslySetInnerHTML={{ __html: slider.para1Html }}
+                    />
+                    <p>{slider.para2}</p>
+                    <p>{slider.para3}</p>
+                    <p>{slider.para4}</p>
+                    <p>{slider.para5}</p>
+                    <p
+                      key={slider.para6Html}
+                      dangerouslySetInnerHTML={{ __html: slider.para6Html }}
+                    />
+                    <p
+                      key={slider.para7Html}
+                      dangerouslySetInnerHTML={{ __html: slider.para7Html }}
+                    />
                   </div>
 
                   <button
@@ -413,7 +407,7 @@ const PricingPage = () => {
               <div>
                 <div className="lg:pl-[130px]">
                   <h2 className="text-[48px] sm:text-[80px] lg:text-[120px] font-bold leading-[1] tracking-[-0.05em]">
-                    Photography...
+                    {slider.photoHeading}
                   </h2>
                 </div>
 
@@ -440,37 +434,22 @@ const PricingPage = () => {
                   />
 
                   <div className="max-w-[646px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] lg:leading-[20px] tracking-[-0.05em] space-y-4">
-                    <p>
-                      <strong className="font-bold">Video production</strong> is a more complex process compared with
-                      photography, both in planning, production and the fact that the edit time will span days rather
-                      than hours, as it does it photography.
-                    </p>
-                    <p>
-                      Similarly to a photo shoot, you’ll need to think about the location: from studio spaces to
-                      Airbnbs for lifestyle work, and the consideration for sound as well.
-                    </p>
-                    <p>
-                      We may need a bigger team, if lighting, sound, or set requirements are needed. Additional
-                      equipment such as autocues, specialist lighting and microphones, cameras dedicated to slow motion
-                      may also be considered for more creative briefs.
-                    </p>
-                    <p>
-                      Actors and presenters, hair and makeup, set elements, props and materials, even fashion stylists,
-                      food stylists may required too.
-                    </p>
-                    <p>
-                      Editing often needs multiple days to complete, and we’ll best estimate this for you, allowing for
-                      time to feed back and make changes. We can also include music, sound effects and voiceover.
-                    </p>
-                    <p>
-                      The <strong className="font-bold">Pocket Creatives</strong> team will always provide a full
-                      breakdown when we quote for you, which then makes it easier to see what resources your project
-                      needs to get made.
-                    </p>
-                    <p>
-                      To give you a general idea, a full day of filming with us starts at{" "}
-                      <strong className="font-bold">£940+VAT</strong>.
-                    </p>
+                    <p
+                      key={slider.para1Html}
+                      dangerouslySetInnerHTML={{ __html: slider.para1Html }}
+                    />
+                    <p>{slider.para2}</p>
+                    <p>{slider.para3}</p>
+                    <p>{slider.para4}</p>
+                    <p>{slider.para5}</p>
+                    <p
+                      key={slider.para6Html}
+                      dangerouslySetInnerHTML={{ __html: slider.para6Html }}
+                    />
+                    <p
+                      key={slider.para7Html}
+                      dangerouslySetInnerHTML={{ __html: slider.para7Html }}
+                    />
                   </div>
                 </div>
               </div>
@@ -481,6 +460,27 @@ const PricingPage = () => {
     </ModalContext.Provider>
   )
 }
+
+export const query = graphql`
+  query PricingPageWordPressQuery {
+    allWpPage {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
 
 export default PricingPage
 
@@ -493,4 +493,3 @@ export const Head = () => (
     />
   </>
 )
-

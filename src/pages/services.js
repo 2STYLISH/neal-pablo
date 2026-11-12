@@ -1,8 +1,15 @@
 import * as React from "react"
-import { Link } from "gatsby"
+import { Link, graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
 import useDragScroll from "../components/useDragScroll"
+import {
+  DEFAULT_SERVICES_CONTENT,
+  parseServicesFromWpPage,
+  findServicesPageNode,
+  fetchLiveWpServices,
+  getCachedWpServices,
+} from "../utils/wpPagesContent"
 
 import videoPreImg from "../images/services/video-pre.png"
 import videoProdImg from "../images/services/video-prod.png"
@@ -16,22 +23,31 @@ import wholePlanningImg from "../images/services/whole-planning.png"
 import wholeTalentImg from "../images/services/whole-talent.png"
 import wholeEditingImg from "../images/services/whole-editing.png"
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
 const GoToArrow = () => (
   <svg viewBox="0 0 18 12" className="w-[16px] h-[12px] shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M1 6h15M11 1l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
 
-const ProcessSection = ({ id, steps, invertHeadingColors = false }) => (
+const ProcessSection = ({
+  id,
+  headingPrefix = "The process: ",
+  headingHighlight = "making it easy for you",
+  steps,
+  invertHeadingColors = false,
+}) => (
   <section id={id} className="pt-16 sm:pt-24 lg:pt-[135px] pb-16 sm:pb-24 lg:pb-[105px]">
     <div className="container-x">
       <div className="lg:pl-[37px]">
         <h2 className="text-[40px] sm:text-[60px] lg:text-[80px] font-extrabold leading-[1] tracking-[-0.05em]">
           <span className={invertHeadingColors ? "text-brand-yellow" : "text-brand-blue"}>
-            The process:{" "}
+            {headingPrefix}
           </span>
           <span className={invertHeadingColors ? "text-brand-blue" : "text-brand-yellow"}>
-            making it easy for you
+            {headingHighlight}
           </span>
         </h2>
       </div>
@@ -107,45 +123,72 @@ const ProcessSection = ({ id, steps, invertHeadingColors = false }) => (
   </section>
 )
 
-const processText =
-  "Lorem ipsum dolor sit amet consectetur. Morbi mi elit vulputate aliquet amet. Consectetur imperdiet ac tortor urna. Amet convallis cras amet tortor massa odio consectetur. Nunc egestas euismod odio ullamcorper. Risus pharetra massa quam tincidunt odio senectus nunc pulvinar nisl. Commodo mattis quis mauris libero aliquet nunc quis aliquam. Ultricies."
+const defaultVideoImages = [videoPreImg, videoProdImg, videoPostImg]
+const defaultPhotoImages = [photoPreImg, photoProdImg, photoPostImg]
+const defaultPackageImages = [wholePlanningImg, wholeTalentImg, wholeEditingImg]
 
-const videoSteps = [
-  { stage: "Pre-production", title: "Meeting & Planning", text: processText, image: videoPreImg },
-  { stage: "Production", title: "Lights, Camera, Action", text: processText, image: videoProdImg },
-  { stage: "Post-production", title: "Review & Edit", text: processText, image: videoPostImg },
-]
-
-const photoSteps = [
-  { stage: "Pre-production", title: "Meeting & Planning", text: processText, image: photoPreImg },
-  { stage: "Production", title: "Lights, Camera, Action", text: processText, image: photoProdImg },
-  { stage: "Post-production", title: "Review & Edit", text: processText, image: photoPostImg },
-]
-
-const wholePackageItems = [
-  {
-    title: "Planning",
-    image: wholePlanningImg,
-  },
-  {
-    title: "Talent & Location",
-    image: wholeTalentImg,
-  },
-  {
-    title: "Editing & Delivery",
-    image: wholeEditingImg,
-  },
-]
-
-const ServicesPage = () => {
+const ServicesPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const sliderDrag = useDragScroll()
+
+  const buildTimePageNodes = data?.allWpPage?.nodes || []
+  const buildTimeServicesNode = findServicesPageNode(buildTimePageNodes)
+  const [servicesContent, setServicesContent] = React.useState(() =>
+    parseServicesFromWpPage(buildTimeServicesNode)
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    const cached = getCachedWpServices()
+    if (cached) {
+      setServicesContent(cached)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpServices()
+      .then(liveContent => {
+        if (isMounted && liveContent) {
+          setServicesContent(liveContent)
+        }
+      })
+      .catch(() => {
+        // Keep cached or build-time fallback if offline
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const scrollSlider = dir => {
     const el = sliderDrag.ref.current
     if (!el) return
     el.scrollBy({ left: dir * 788, behavior: "smooth" })
   }
+
+  const videoSteps = (
+    servicesContent.videoProcess?.steps ||
+    DEFAULT_SERVICES_CONTENT.videoProcess.steps
+  ).map((s, idx) => ({
+    ...s,
+    image: defaultVideoImages[idx] || videoPreImg,
+  }))
+
+  const photoSteps = (
+    servicesContent.photoProcess?.steps ||
+    DEFAULT_SERVICES_CONTENT.photoProcess.steps
+  ).map((s, idx) => ({
+    ...s,
+    image: defaultPhotoImages[idx] || photoPreImg,
+  }))
+
+  const wholePackageItems = (
+    servicesContent.wholePackage?.items ||
+    DEFAULT_SERVICES_CONTENT.wholePackage.items
+  ).map((item, idx) => ({
+    ...item,
+    image: defaultPackageImages[idx] || wholePlanningImg,
+  }))
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -160,22 +203,19 @@ const ServicesPage = () => {
           <div className="container-x">
             <div className="lg:pl-[101px]">
               <h1 className="text-[48px] sm:text-[80px] lg:text-[120px] font-extrabold leading-[1] tracking-[-0.05em] text-white max-w-[1090px]">
-                Aaaand Action:
+                {servicesContent.videoHero?.headingLine1 || "Aaaand Action:"}
                 <br />
-                Video Production
+                {servicesContent.videoHero?.headingLine2 || "Video Production"}
               </h1>
 
               <div className="mt-10 sm:mt-14 lg:mt-[60px] flex flex-col lg:flex-row items-start gap-10 lg:gap-[173px]">
                 <p className="max-w-[610px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.8] lg:leading-[40px] tracking-[-0.05em] text-black">
-                  Lorem ipsum dolor sit amet consectetur. Nulla purus rhoncus at mattis. Et ac vitae ornare volutpat.
-                  Mollis sem scelerisque dictum nunc iaculis vivamus donec. Molestie sed mattis aenean sit arcu ipsum
-                  amet vulputate tellus. Blandit pellentesque magna egestas eget rhoncus tincidunt. In ultrices velit
-                  et velit morbi vitae dolor fames. Rhoncus.
+                  {servicesContent.videoHero?.description}
                 </p>
 
                 <div className="lg:pt-[7px] space-y-[15px]">
                   <p className="text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-black">
-                    Go to...
+                    {servicesContent.videoHero?.goToLabel || "Go to..."}
                   </p>
                   <Link
                     to="/videography-services"
@@ -184,7 +224,7 @@ const ServicesPage = () => {
                     <span className="text-black">
                       <GoToArrow />
                     </span>
-                    Videography
+                    {servicesContent.videoHero?.link1Text || "Videography"}
                   </Link>
                   <Link
                     to="/photography-services"
@@ -193,7 +233,7 @@ const ServicesPage = () => {
                     <span className="text-black">
                       <GoToArrow />
                     </span>
-                    Photography
+                    {servicesContent.videoHero?.link2Text || "Photography"}
                   </Link>
                 </div>
               </div>
@@ -202,7 +242,12 @@ const ServicesPage = () => {
         </section>
 
         {/* 2. VIDEO SERVICE PROCESS (#317:3243) */}
-        <ProcessSection id="video-process" steps={videoSteps} />
+        <ProcessSection
+          id="video-process"
+          headingPrefix={servicesContent.videoProcess?.headingPrefix}
+          headingHighlight={servicesContent.videoProcess?.headingHighlight}
+          steps={videoSteps}
+        />
 
         {/* 3. PIXEL PERFECTION: PHOTOGRAPHY (#317:3233) */}
         <section
@@ -212,22 +257,19 @@ const ServicesPage = () => {
           <div className="container-x">
             <div className="lg:pl-[120px]">
               <h2 className="text-[48px] sm:text-[80px] lg:text-[120px] font-extrabold leading-[1] tracking-[-0.05em] text-white max-w-[1090px]">
-                Pixel perfection:
+                {servicesContent.photoHero?.headingLine1 || "Pixel perfection:"}
                 <br />
-                Photography
+                {servicesContent.photoHero?.headingLine2 || "Photography"}
               </h2>
 
               <div className="mt-10 sm:mt-14 lg:mt-[60px] flex flex-col lg:flex-row items-start gap-10 lg:gap-[173px]">
                 <p className="max-w-[610px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.8] lg:leading-[40px] tracking-[-0.05em] text-black">
-                  Lorem ipsum dolor sit amet consectetur. Nulla purus rhoncus at mattis. Et ac vitae ornare volutpat.
-                  Mollis sem scelerisque dictum nunc iaculis vivamus donec. Molestie sed mattis aenean sit arcu ipsum
-                  amet vulputate tellus. Blandit pellentesque magna egestas eget rhoncus tincidunt. In ultrices velit
-                  et velit morbi vitae dolor fames. Rhoncus.
+                  {servicesContent.photoHero?.description}
                 </p>
 
                 <div className="lg:pt-[7px] space-y-[15px]">
                   <p className="text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-black">
-                    Go to...
+                    {servicesContent.photoHero?.goToLabel || "Go to..."}
                   </p>
                   <Link
                     to="/videography-services"
@@ -236,7 +278,7 @@ const ServicesPage = () => {
                     <span className="text-black">
                       <GoToArrow />
                     </span>
-                    Video Production
+                    {servicesContent.photoHero?.link1Text || "Video Production"}
                   </Link>
                   <a
                     href="#the-whole-package"
@@ -245,7 +287,7 @@ const ServicesPage = () => {
                     <span className="text-black">
                       <GoToArrow />
                     </span>
-                    The Rest
+                    {servicesContent.photoHero?.link2Text || "The Rest"}
                   </a>
                 </div>
               </div>
@@ -254,7 +296,13 @@ const ServicesPage = () => {
         </section>
 
         {/* 4. PHOTO SERVICE PROCESS (#317:3212) */}
-        <ProcessSection id="photo-process" steps={photoSteps} invertHeadingColors />
+        <ProcessSection
+          id="photo-process"
+          headingPrefix={servicesContent.photoProcess?.headingPrefix}
+          headingHighlight={servicesContent.photoProcess?.headingHighlight}
+          steps={photoSteps}
+          invertHeadingColors
+        />
 
         {/* 5. THE WHOLE PACKAGE (#317:3155) */}
         <section id="the-whole-package" className="pb-16 sm:pb-24 lg:pb-[144px]">
@@ -262,22 +310,19 @@ const ServicesPage = () => {
             <div className="container-x">
               <div className="lg:pl-[120px]">
                 <h2 className="text-[48px] sm:text-[80px] lg:text-[120px] font-extrabold leading-[1] tracking-[-0.05em] text-white max-w-[1200px]">
-                  We’ve got it covered:
+                  {servicesContent.wholePackage?.headingLine1 || "We’ve got it covered:"}
                   <br />
-                  The Whole Package
+                  {servicesContent.wholePackage?.headingLine2 || "The Whole Package"}
                 </h2>
 
                 <div className="mt-10 sm:mt-14 lg:mt-[60px] flex flex-col lg:flex-row items-start gap-10 lg:gap-[173px]">
                   <p className="max-w-[610px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.8] lg:leading-[40px] tracking-[-0.05em] text-black">
-                    Lorem ipsum dolor sit amet consectetur. Nulla purus rhoncus at mattis. Et ac vitae ornare volutpat.
-                    Mollis sem scelerisque dictum nunc iaculis vivamus donec. Molestie sed mattis aenean sit arcu ipsum
-                    amet vulputate tellus. Blandit pellentesque magna egestas eget rhoncus tincidunt. In ultrices velit
-                    et velit morbi vitae dolor fames. Rhoncus.
+                    {servicesContent.wholePackage?.description}
                   </p>
 
                   <div className="lg:pt-[7px] space-y-[15px]">
                     <p className="text-[18px] lg:text-[20px] font-extrabold leading-[25px] tracking-[-0.05em] text-black">
-                      Go to...
+                      {servicesContent.wholePackage?.goToLabel || "Go to..."}
                     </p>
                     <Link
                       to="/videography-services"
@@ -286,7 +331,7 @@ const ServicesPage = () => {
                       <span className="text-black">
                         <GoToArrow />
                       </span>
-                      Video Production
+                      {servicesContent.wholePackage?.link1Text || "Video Production"}
                     </Link>
                     <Link
                       to="/photography-services"
@@ -295,7 +340,7 @@ const ServicesPage = () => {
                       <span className="text-black">
                         <GoToArrow />
                       </span>
-                      Photography
+                      {servicesContent.wholePackage?.link2Text || "Photography"}
                     </Link>
                   </div>
                 </div>
@@ -311,23 +356,24 @@ const ServicesPage = () => {
                 {...sliderDrag}
                 className="flex gap-8 lg:gap-[48px] overflow-x-auto no-scrollbar pr-6 lg:pr-[120px] cursor-grab select-none"
               >
-                {wholePackageItems.map(item => (
-                  <React.Fragment key={item.title}>
+                {wholePackageItems.map((item, idx) => (
+                  <React.Fragment key={idx}>
                     <div className="w-[300px] sm:w-[346px] shrink-0 text-brand-slate">
                       <h3 className="text-[24px] sm:text-[30px] font-medium leading-[1] tracking-[-0.05em]">
                         {item.title}
                       </h3>
                       <div className="mt-6 lg:mt-[32px] text-[16px] sm:text-[20px] font-medium leading-[1.2] tracking-[-0.05em] space-y-5">
                         <ul className="list-disc pl-6 space-y-0.5">
-                          <li>Lorem Ipsum dolor sit</li>
-                          <li>Lorem Ipsum dolor sit</li>
-                          <li>Lorem Ipsum dolor sit</li>
-                          <li>Lorem Ipsum dolor sit</li>
+                          {(item.bullets || [
+                            "Lorem Ipsum dolor sit",
+                            "Lorem Ipsum dolor sit",
+                            "Lorem Ipsum dolor sit",
+                            "Lorem Ipsum dolor sit",
+                          ]).map((b, bIdx) => (
+                            <li key={bIdx}>{b}</li>
+                          ))}
                         </ul>
-                        <p>
-                          Nunc id ridiculus mattis ullamcorper in id accumsan eu habitant. Mollis duis eu tellus
-                          aliquam viverra. Amet feugiat et habitasse mauris massa iaculis.
-                        </p>
+                        <p>{item.text}</p>
                       </div>
                     </div>
                     <div className="w-[300px] sm:w-[346px] h-[240px] sm:h-[280px] shrink-0 overflow-hidden rounded-[6px]">
@@ -372,6 +418,27 @@ const ServicesPage = () => {
     </ModalContext.Provider>
   )
 }
+
+export const query = graphql`
+  query ServicesPageWordPressQuery {
+    allWpPage {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
 
 export default ServicesPage
 

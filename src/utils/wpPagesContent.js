@@ -828,3 +828,1035 @@ export async function fetchLiveWpWorks() {
   return parsed
 }
 
+/* ==========================================================================
+   3. SERVICES PAGE DEFAULT CONTENT & PARSER (/services)
+   ========================================================================== */
+
+const SERVICES_PROCESS_TEXT =
+  "Lorem ipsum dolor sit amet consectetur. Morbi mi elit vulputate aliquet amet. Consectetur imperdiet ac tortor urna. Amet convallis cras amet tortor massa odio consectetur. Nunc egestas euismod odio ullamcorper. Risus pharetra massa quam tincidunt odio senectus nunc pulvinar nisl. Commodo mattis quis mauris libero aliquet nunc quis aliquam. Ultricies."
+
+export const DEFAULT_SERVICES_CONTENT = {
+  videoHero: {
+    headingLine1: "Aaaand Action:",
+    headingLine2: "Video Production",
+    description: WORKS_LOREM,
+    goToLabel: "Go to...",
+    link1Text: "Videography",
+    link2Text: "Photography",
+  },
+  videoProcess: {
+    headingPrefix: "The process: ",
+    headingHighlight: "making it easy for you",
+    steps: [
+      {
+        stage: "Pre-production",
+        title: "Meeting & Planning",
+        text: SERVICES_PROCESS_TEXT,
+      },
+      {
+        stage: "Production",
+        title: "Lights, Camera, Action",
+        text: SERVICES_PROCESS_TEXT,
+      },
+      {
+        stage: "Post-production",
+        title: "Review & Edit",
+        text: SERVICES_PROCESS_TEXT,
+      },
+    ],
+  },
+  photoHero: {
+    headingLine1: "Pixel perfection:",
+    headingLine2: "Photography",
+    description: WORKS_LOREM,
+    goToLabel: "Go to...",
+    link1Text: "Video Production",
+    link2Text: "The Rest",
+  },
+  photoProcess: {
+    headingPrefix: "The process: ",
+    headingHighlight: "making it easy for you",
+    steps: [
+      {
+        stage: "Pre-production",
+        title: "Meeting & Planning",
+        text: SERVICES_PROCESS_TEXT,
+      },
+      {
+        stage: "Production",
+        title: "Lights, Camera, Action",
+        text: SERVICES_PROCESS_TEXT,
+      },
+      {
+        stage: "Post-production",
+        title: "Review & Edit",
+        text: SERVICES_PROCESS_TEXT,
+      },
+    ],
+  },
+  wholePackage: {
+    headingLine1: "We’ve got it covered:",
+    headingLine2: "The Whole Package",
+    description: WORKS_LOREM,
+    goToLabel: "Go to...",
+    link1Text: "Video Production",
+    link2Text: "Photography",
+    items: [
+      {
+        title: "Planning",
+        bullets: [
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+        ],
+        text: "Nunc id ridiculus mattis ullamcorper in id accumsan eu habitant. Mollis duis eu tellus aliquam viverra. Amet feugiat et habitasse mauris massa iaculis.",
+      },
+      {
+        title: "Talent & Location",
+        bullets: [
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+        ],
+        text: "Nunc id ridiculus mattis ullamcorper in id accumsan eu habitant. Mollis duis eu tellus aliquam viverra. Amet feugiat et habitasse mauris massa iaculis.",
+      },
+      {
+        title: "Editing & Delivery",
+        bullets: [
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+          "Lorem Ipsum dolor sit",
+        ],
+        text: "Nunc id ridiculus mattis ullamcorper in id accumsan eu habitant. Mollis duis eu tellus aliquam viverra. Amet feugiat et habitasse mauris massa iaculis.",
+      },
+    ],
+  },
+}
+
+export function parseServicesFromWpPage(pageNode) {
+  const merged = JSON.parse(JSON.stringify(DEFAULT_SERVICES_CONTENT))
+  if (!pageNode) return merged
+
+  const rawHtml = pageNode.content || ""
+  if (!rawHtml.trim()) return merged
+
+  const lines = extractLinesFromHtml(rawHtml)
+  let matchedAnyKey = false
+
+  lines.forEach(({ text }) => {
+    const colonIdx = text.indexOf(":")
+    if (colonIdx === -1) return
+    const key = text
+      .slice(0, colonIdx)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/(^_|_$)/g, "")
+    const val = text.slice(colonIdx + 1).trim()
+    if (!val) return
+
+    switch (key) {
+      // 1. Video Hero
+      case "video_hero_heading_line_1":
+        merged.videoHero.headingLine1 = val
+        matchedAnyKey = true
+        break
+      case "video_hero_heading_line_2":
+        merged.videoHero.headingLine2 = val
+        matchedAnyKey = true
+        break
+      case "video_hero_description":
+      case "video_production_description":
+        merged.videoHero.description = val
+        matchedAnyKey = true
+        break
+
+      // 2. Video Process
+      case "video_step_1_stage":
+        merged.videoProcess.steps[0].stage = val
+        matchedAnyKey = true
+        break
+      case "video_step_1_title":
+        merged.videoProcess.steps[0].title = val
+        matchedAnyKey = true
+        break
+      case "video_step_1_text":
+        merged.videoProcess.steps[0].text = val
+        matchedAnyKey = true
+        break
+      case "video_step_2_stage":
+        merged.videoProcess.steps[1].stage = val
+        matchedAnyKey = true
+        break
+      case "video_step_2_title":
+        merged.videoProcess.steps[1].title = val
+        matchedAnyKey = true
+        break
+      case "video_step_2_text":
+        merged.videoProcess.steps[1].text = val
+        matchedAnyKey = true
+        break
+      case "video_step_3_stage":
+        merged.videoProcess.steps[2].stage = val
+        matchedAnyKey = true
+        break
+      case "video_step_3_title":
+        merged.videoProcess.steps[2].title = val
+        matchedAnyKey = true
+        break
+      case "video_step_3_text":
+        merged.videoProcess.steps[2].text = val
+        matchedAnyKey = true
+        break
+
+      // 3. Photo Hero
+      case "photo_hero_heading_line_1":
+        merged.photoHero.headingLine1 = val
+        matchedAnyKey = true
+        break
+      case "photo_hero_heading_line_2":
+        merged.photoHero.headingLine2 = val
+        matchedAnyKey = true
+        break
+      case "photo_hero_description":
+      case "photography_description":
+        merged.photoHero.description = val
+        matchedAnyKey = true
+        break
+
+      // 4. Photo Process
+      case "photo_step_1_stage":
+        merged.photoProcess.steps[0].stage = val
+        matchedAnyKey = true
+        break
+      case "photo_step_1_title":
+        merged.photoProcess.steps[0].title = val
+        matchedAnyKey = true
+        break
+      case "photo_step_1_text":
+        merged.photoProcess.steps[0].text = val
+        matchedAnyKey = true
+        break
+      case "photo_step_2_stage":
+        merged.photoProcess.steps[1].stage = val
+        matchedAnyKey = true
+        break
+      case "photo_step_2_title":
+        merged.photoProcess.steps[1].title = val
+        matchedAnyKey = true
+        break
+      case "photo_step_2_text":
+        merged.photoProcess.steps[1].text = val
+        matchedAnyKey = true
+        break
+      case "photo_step_3_stage":
+        merged.photoProcess.steps[2].stage = val
+        matchedAnyKey = true
+        break
+      case "photo_step_3_title":
+        merged.photoProcess.steps[2].title = val
+        matchedAnyKey = true
+        break
+      case "photo_step_3_text":
+        merged.photoProcess.steps[2].text = val
+        matchedAnyKey = true
+        break
+
+      // 5. Whole Package
+      case "whole_package_heading_line_1":
+        merged.wholePackage.headingLine1 = val
+        matchedAnyKey = true
+        break
+      case "whole_package_heading_line_2":
+        merged.wholePackage.headingLine2 = val
+        matchedAnyKey = true
+        break
+      case "whole_package_description":
+        merged.wholePackage.description = val
+        matchedAnyKey = true
+        break
+      case "package_1_title":
+        merged.wholePackage.items[0].title = val
+        matchedAnyKey = true
+        break
+      case "package_1_text":
+        merged.wholePackage.items[0].text = val
+        matchedAnyKey = true
+        break
+      case "package_2_title":
+        merged.wholePackage.items[1].title = val
+        matchedAnyKey = true
+        break
+      case "package_2_text":
+        merged.wholePackage.items[1].text = val
+        matchedAnyKey = true
+        break
+      case "package_3_title":
+        merged.wholePackage.items[2].title = val
+        matchedAnyKey = true
+        break
+      case "package_3_text":
+        merged.wholePackage.items[2].text = val
+        matchedAnyKey = true
+        break
+      default:
+        break
+    }
+  })
+
+  if (!matchedAnyKey && lines.length > 0) {
+    merged.videoHero.description = lines[0].text
+  }
+
+  return merged
+}
+
+/* ==========================================================================
+   4. PRICING PAGE DEFAULT CONTENT & PARSER (/pricing)
+   ========================================================================== */
+
+export const DEFAULT_PRICING_CONTENT = {
+  hero: {
+    eyebrow: "Avoiding the taboo:",
+    headingLine1: "Pricing for",
+    headingLine2: "video production",
+    headingLine3: "and photography",
+    para1:
+      "Price is important to everybody, and we know this is a major factor in deciding who you’ll want to work with. We like to think that clients work with us for a range of reasons, from our quality of output to our project management, but getting the budget in the right place is something that we spend a lot of time on.",
+    para2:
+      "We can either quote from scratch once we understand your brief, or work to your target spend. This flexibility makes us a great fit for both small and large clients alike.",
+    para3:
+      "You can read a bit more below about how we structure our rates for both video production and photography below, and we’re always here for any queries.",
+    videoUrl: "/videos/showreel.mp4",
+    videoCaption: "*Click on Video to toggle sound",
+  },
+  modular: {
+    heading: "We use a modular pricing model:",
+    bullet1: "Pay only for what you need",
+    bullet2: "No matter how large or small your project",
+    bullet3: "Oh, and no budget overruns!",
+    mainVideoUrl: "/videos/james-read-tan.mp4",
+    card1Title: "Everything you need and no hidden costs.",
+    card1Text:
+      "There are lots of factors that affect the overall price of video production and photography shoots, such as props, backgrounds, models and locations. This is why there’s no one-size-fits all price, and most creative agencies won’t put any prices on their websites – as they can be misleading without a lot of description.",
+    card2Title: "We'll get you from brief to quote in a flash!",
+    card2Text:
+      "We will work with you to understand your brief and the full photography and video production requirements of your project, before delivering a budget breakdown to you at the beginning of the process. This gives you a fully honest and transparent view of the resources that make up your project. There’s always room for conversation and tweaks, and we’re also happy to start with your ideal spend and work backwards.",
+  },
+  howItWorks: {
+    box1Title: "Cheap or Expensive?",
+    box1Para1:
+      "To give you some context, we aim to be in the middle band in terms of our pricing structure, which means that our typical daily rates for photography and video production will sit in between those agencies who work at the very upper end of our industry, with individual freelancers at the lower end of the pricing range.",
+    box1Para2:
+      "It’s important to note that we’re not talking about quality here, just price. We’re often chosen ahead of the largest of our competitors as we can deliver great quality photography and video production services for a lower price. This is because we run an efficient setup, with less overheads and no bloat.",
+    box2Title: "So how does it work?",
+    box2Para1:
+      "Our setup also makes us attractive to start-ups, those who are crowdfunding, and businesses who still need great photography and video production, but are working within tighter budgets.",
+    box2Para2:
+      "We do this by using modular pricing – knowing that each photography and video production project is different, you pay for just what you need.",
+    box2Para3:
+      "While some clients may need just an hour of photography to capture some simple pack shots for a new addition to their range, others may need a multiple camera setup for a TV advert to showcase their brand to the world. We have the ability to quote easily for both ends of that spectrum.",
+    box2Para4:
+      "If you already have a total budget available, share that with us and we can work out how to deliver as much as possible for what you have to spend.",
+  },
+  getInTouch: {
+    heading: "Get In Touch",
+    subtitle:
+      "Drop us a mail, let us know your budget, and we’ll share what we can offer",
+    buttonText: "Send",
+  },
+  slider: {
+    videoHeading: "Video Production...",
+    photoHeading: "Photography...",
+    para1Html: `<strong class="font-bold">Video production</strong> is a more complex process compared with photography, both in planning, production and the fact that the edit time will span days rather than hours, as it does it photography.`,
+    para2:
+      "Similarly to a photo shoot, you’ll need to think about the location: from studio spaces to Airbnbs for lifestyle work, and the consideration for sound as well.",
+    para3:
+      "We may need a bigger team, if lighting, sound, or set requirements are needed. Additional equipment such as autocues, specialist lighting and microphones, cameras dedicated to slow motion may also be considered for more creative briefs.",
+    para4:
+      "Actors and presenters, hair and makeup, set elements, props and materials, even fashion stylists, food stylists may required too.",
+    para5:
+      "Editing often needs multiple days to complete, and we’ll best estimate this for you, allowing for time to feed back and make changes. We can also include music, sound effects and voiceover.",
+    para6Html: `The <strong class="font-bold">Pocket Creatives</strong> team will always provide a full breakdown when we quote for you, which then makes it easier to see what resources your project needs to get made.`,
+    para7Html: `To give you a general idea, a full day of filming with us starts at <strong class="font-bold">£940+VAT</strong>.`,
+  },
+}
+
+export function parsePricingFromWpPage(pageNode) {
+  const merged = JSON.parse(JSON.stringify(DEFAULT_PRICING_CONTENT))
+  if (!pageNode) return merged
+
+  const rawHtml = pageNode.content || ""
+  if (!rawHtml.trim()) return merged
+
+  const lines = extractLinesFromHtml(rawHtml)
+  let matchedAnyKey = false
+
+  lines.forEach(({ rawInner, text }) => {
+    const colonIdx = text.indexOf(":")
+    if (colonIdx === -1) return
+    const key = text
+      .slice(0, colonIdx)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/(^_|_$)/g, "")
+    const val = text.slice(colonIdx + 1).trim()
+    const rawVal = rawInner.includes(":")
+      ? rawInner.slice(rawInner.indexOf(":") + 1).trim()
+      : val
+    if (!val) return
+
+    switch (key) {
+      // 1. Hero
+      case "hero_eyebrow":
+        merged.hero.eyebrow = val
+        matchedAnyKey = true
+        break
+      case "hero_heading_line_1":
+        merged.hero.headingLine1 = val
+        matchedAnyKey = true
+        break
+      case "hero_heading_line_2":
+        merged.hero.headingLine2 = val
+        matchedAnyKey = true
+        break
+      case "hero_heading_line_3":
+        merged.hero.headingLine3 = val
+        matchedAnyKey = true
+        break
+      case "hero_paragraph_1":
+      case "hero_para_1":
+        merged.hero.para1 = val
+        matchedAnyKey = true
+        break
+      case "hero_paragraph_2":
+      case "hero_para_2":
+        merged.hero.para2 = val
+        matchedAnyKey = true
+        break
+      case "hero_paragraph_3":
+      case "hero_para_3":
+        merged.hero.para3 = val
+        matchedAnyKey = true
+        break
+      case "hero_video_url":
+        merged.hero.videoUrl = val
+        matchedAnyKey = true
+        break
+      case "hero_video_caption":
+        merged.hero.videoCaption = val
+        matchedAnyKey = true
+        break
+
+      // 2. Modular Pricing
+      case "modular_heading":
+        merged.modular.heading = val
+        matchedAnyKey = true
+        break
+      case "modular_bullet_1":
+        merged.modular.bullet1 = val
+        matchedAnyKey = true
+        break
+      case "modular_bullet_2":
+        merged.modular.bullet2 = val
+        matchedAnyKey = true
+        break
+      case "modular_bullet_3":
+        merged.modular.bullet3 = val
+        matchedAnyKey = true
+        break
+      case "modular_video_url":
+      case "main_video_url":
+        merged.modular.mainVideoUrl = val
+        matchedAnyKey = true
+        break
+      case "card_1_title":
+        merged.modular.card1Title = val
+        matchedAnyKey = true
+        break
+      case "card_1_text":
+        merged.modular.card1Text = val
+        matchedAnyKey = true
+        break
+      case "card_2_title":
+        merged.modular.card2Title = val
+        matchedAnyKey = true
+        break
+      case "card_2_text":
+        merged.modular.card2Text = val
+        matchedAnyKey = true
+        break
+
+      // 3. Cheap or Expensive / How Does It Work
+      case "box_1_title":
+        merged.howItWorks.box1Title = val
+        matchedAnyKey = true
+        break
+      case "box_1_paragraph_1":
+      case "box_1_para_1":
+        merged.howItWorks.box1Para1 = val
+        matchedAnyKey = true
+        break
+      case "box_1_paragraph_2":
+      case "box_1_para_2":
+        merged.howItWorks.box1Para2 = val
+        matchedAnyKey = true
+        break
+      case "box_2_title":
+        merged.howItWorks.box2Title = val
+        matchedAnyKey = true
+        break
+      case "box_2_paragraph_1":
+      case "box_2_para_1":
+        merged.howItWorks.box2Para1 = val
+        matchedAnyKey = true
+        break
+      case "box_2_paragraph_2":
+      case "box_2_para_2":
+        merged.howItWorks.box2Para2 = val
+        matchedAnyKey = true
+        break
+      case "box_2_paragraph_3":
+      case "box_2_para_3":
+        merged.howItWorks.box2Para3 = val
+        matchedAnyKey = true
+        break
+      case "box_2_paragraph_4":
+      case "box_2_para_4":
+        merged.howItWorks.box2Para4 = val
+        matchedAnyKey = true
+        break
+
+      // 4. Get In Touch
+      case "contact_heading":
+      case "get_in_touch_heading":
+        merged.getInTouch.heading = val
+        matchedAnyKey = true
+        break
+      case "contact_subtitle":
+      case "get_in_touch_subtitle":
+        merged.getInTouch.subtitle = val
+        matchedAnyKey = true
+        break
+      case "contact_button":
+        merged.getInTouch.buttonText = val
+        matchedAnyKey = true
+        break
+
+      // 5. Slider (Video Production / Photography rates)
+      case "slider_video_heading":
+        merged.slider.videoHeading = val
+        matchedAnyKey = true
+        break
+      case "slider_photo_heading":
+        merged.slider.photoHeading = val
+        matchedAnyKey = true
+        break
+      case "slider_paragraph_1":
+        merged.slider.para1Html = rawVal
+        matchedAnyKey = true
+        break
+      case "slider_paragraph_2":
+        merged.slider.para2 = val
+        matchedAnyKey = true
+        break
+      case "slider_paragraph_3":
+        merged.slider.para3 = val
+        matchedAnyKey = true
+        break
+      case "slider_paragraph_4":
+        merged.slider.para4 = val
+        matchedAnyKey = true
+        break
+      case "slider_paragraph_5":
+        merged.slider.para5 = val
+        matchedAnyKey = true
+        break
+      case "slider_paragraph_6":
+        merged.slider.para6Html = rawVal
+        matchedAnyKey = true
+        break
+      case "slider_starting_rate":
+      case "slider_paragraph_7":
+        merged.slider.para7Html = rawVal
+        matchedAnyKey = true
+        break
+      default:
+        break
+    }
+  })
+
+  if (!matchedAnyKey && lines.length > 0) {
+    merged.hero.para1 = lines[0].text
+  }
+
+  return merged
+}
+
+/* ==========================================================================
+   5. VIDEOGRAPHY SERVICES, PHOTOGRAPHY SERVICES & TRAINING COURSES
+   ========================================================================== */
+
+export const DEFAULT_VIDEOGRAPHY_SERVICES_CONTENT = {
+  hero: {
+    heading: "Video Production Services",
+    subheading: "by POCKET CREATIVES",
+    videoUrl: "/videos/showreel.mp4",
+    videoCaption: "*Click on Video to toggle sound",
+    introHeading:
+      "Our professional video production and videography services are easy to commission...",
+    introSubtext:
+      "whether you’re a seasoned pro or if you’re producing video for the first time.",
+    rightText:
+      "We take the time to understand your requirements: how your video will be used and what it needs to achieve.",
+    buttonText: "Have questions?",
+  },
+  helpSection: {
+    para1:
+      "As a video production company in London, we work as a close-knit team across every aspect of corporate, promotional and marketing videos. Whether it’s producing a captivating crowdfunding video, filming at events, showcasing products in use, or talking to camera in an interview, we can support you.",
+    para2:
+      "Watch some examples from our video production portfolio below and then reach out to see how we can help bring your next video project to life.",
+  },
+  portfolio: {
+    heading: "A Snapshot of our Video Production Portfolio",
+    categories: [
+      {
+        tab: "Beauty & Cosmetics",
+        client: "James Read Tan",
+        title: "Beauty and Cosmetics Video",
+        video: "/videos/james-read-tan.mp4",
+        description:
+          "Working directly with brand founder James Read, we planned and produced a new brand visual for tanning brand James Read Tan for an exclusive event launch and subsequent online campaign.",
+      },
+      {
+        tab: "Food & Drink",
+        client: "Kopparberg",
+        title: "Food and Drink Video",
+        video: "/videos/food-showreel.mp4",
+        description:
+          "High-impact commercial food and beverage cinematography styled in-house to showcase texture, freshness, and brand personality across social and broadcast campaigns.",
+      },
+      {
+        tab: "Products",
+        client: "Argos",
+        title: "Product Showcase Video",
+        video: "/videos/product-masabi.mp4",
+        description:
+          "Clean, dynamic product demonstrations and lifestyle films designed to drive conversions across e-commerce platforms and digital ad placements.",
+      },
+      {
+        tab: "Events",
+        client: "Macmillan",
+        title: "Event Coverage & Highlights",
+        video: "/videos/events-showreel.mp4",
+        description:
+          "Capturing the atmosphere, keynote moments, and attendee stories at live corporate, brand launch, and charity events across London and the UK.",
+      },
+      {
+        tab: "Crowdfunding",
+        client: "Startup Launch",
+        title: "Crowdfunding Campaign Video",
+        video: "/videos/crowdfunding-hygie.mp4",
+        description:
+          "Story-driven founder pitches and product explainers engineered to engage backers and exceed funding targets on Kickstarter, Indiegogo, and Crowdcube.",
+      },
+      {
+        tab: "All Others",
+        client: "The Telegraph",
+        title: "Brand & Corporate Video",
+        video: "/videos/tv-california-walnuts.mp4",
+        description:
+          "Bespoke brand storytelling, internal communications, interviews, and social-first video content tailored to your marketing objectives.",
+      },
+    ],
+  },
+  details: {
+    howWeWorkHeading: "How we work",
+    howWeWorkPara1:
+      "We know you’re here because you’re looking for a videographer or a video production team to deliver a great piece of video content for your next campaign or project. Rest assured, we carefully recruit and develop the talents of our passionate in-house team to deliver stunning visuals and excellent client service alongside.",
+    howWeWorkPara2:
+      "All of our editing and colour grading is managed in-house too, making sure we retain full control over the quality of the final video, and giving the ability to work to tight deadlines.",
+    howWeWorkPara3:
+      "If you’re completely new to commissioning video production, we make the process simple and easy for you, taking the lead at all stages while involving you in the creative narrative.",
+    techHeading: "Technically speaking",
+    techPara2:
+      "We combine these with pristine Canon L-Series lenses along with an array of movement and stabilisation tools and modifiers to give your videos the edge.",
+    wholePackageHeading: "The whole package",
+    wholePackagePara1:
+      "Our videographers love making things look great with their cameras and magical lighting combinations.",
+    wholePackagePara2:
+      "We are also assisted by an enviable array of trusted industry talent who work alongside us on shoots, such as food and prop stylists, hair and make up artists, set builders and art directors, along with models, actors and voiceover artists when required.",
+    wholePackagePara3:
+      "Add our access to endless location possibilities to shoot in and we’re confident of being able to pull the right creative elements together to answer any client brief.",
+  },
+}
+
+export function parseVideographyServicesFromWpPage(pageNode) {
+  const merged = JSON.parse(
+    JSON.stringify(DEFAULT_VIDEOGRAPHY_SERVICES_CONTENT)
+  )
+  if (!pageNode?.content) return merged
+  const lines = extractLinesFromHtml(pageNode.content)
+  lines.forEach(({ text }) => {
+    const colonIdx = text.indexOf(":")
+    if (colonIdx === -1) return
+    const key = text
+      .slice(0, colonIdx)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/(^_|_$)/g, "")
+    const val = text.slice(colonIdx + 1).trim()
+    if (!val) return
+    switch (key) {
+      case "hero_heading":
+        merged.hero.heading = val
+        break
+      case "hero_subheading":
+        merged.hero.subheading = val
+        break
+      case "hero_video_url":
+        merged.hero.videoUrl = val
+        break
+      case "hero_intro_heading":
+        merged.hero.introHeading = val
+        break
+      case "hero_intro_subtext":
+        merged.hero.introSubtext = val
+        break
+      case "hero_right_text":
+        merged.hero.rightText = val
+        break
+      case "help_paragraph_1":
+        merged.helpSection.para1 = val
+        break
+      case "help_paragraph_2":
+        merged.helpSection.para2 = val
+        break
+      case "portfolio_heading":
+        merged.portfolio.heading = val
+        break
+      case "how_we_work_heading":
+        merged.details.howWeWorkHeading = val
+        break
+      case "how_we_work_paragraph_1":
+        merged.details.howWeWorkPara1 = val
+        break
+      case "how_we_work_paragraph_2":
+        merged.details.howWeWorkPara2 = val
+        break
+      case "how_we_work_paragraph_3":
+        merged.details.howWeWorkPara3 = val
+        break
+      default:
+        break
+    }
+  })
+  return merged
+}
+
+export const DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT = {
+  hero: {
+    heading: "Photography Services",
+    subheadingPrefix: "available from",
+    subheadingBrand: "POCKET CREATIVES",
+    videoUrl: "/videos/water-texture-bts.mp4",
+    videoCaption: "*Click on Video to toggle sound",
+    rightText:
+      "We put quality and creativity at the heart of what we do, providing high quality and striking imagery to use for websites, editorial, PR, marketing, advertising and social media. Take a look at some examples of our photography below and then reach out to see how we might be able to help you.",
+    buttonText: "Have questions?",
+  },
+  gridSection: {
+    leftBoxTitle: "Photography",
+    leftPara1:
+      "Whether you’re promoting food and drink, beauty and cosmetics, showcasing tech, products, property or anything else, a visually impactful approach is always our priority when delivering our professional photography services.",
+    leftPara2:
+      "We also have extensive experience working with people, capturing corporate headshots, lifestyle imagery and stunning portraiture, as well as the atmosphere of events.",
+    rightPara2:
+      "If your photography assignment requires a larger studio space or an interesting location to bring your products to life, then we can jump in the car and bring the equipment to you, or organise everything on your behalf to provide a completely turn-key photography solution.",
+    rightBoxTitle: "Services",
+  },
+  ctaBand: {
+    heading: "Ready to see what we could do with your next project?",
+    buttonText: "Send",
+  },
+  details: {
+    howWeWorkHeading: "How we work",
+    howWeWorkPara1:
+      "It’s likely you’ve landed here because you’re looking for a photographer or a photography team to deliver images for your next campaign or project. Rest assured, we carefully recruit and develop the talents of our passionate in-house team to deliver stunning imagery, and excellent client service alongside.",
+    howWeWorkPara2:
+      "All of our editing and retouching is managed in-house too, making sure we retain full control over the quality of the final product, and giving the ability to work to tight deadlines.",
+    howWeWorkPara3:
+      "If you’re completely new to commissioning photography, we make the process simple and easy for you, taking the lead at all stages while involving you in the creative narrative.",
+    techHeading: "Technically speaking",
+    techPara1:
+      "When capturing our photography, we trust Canon’s professional sensor technology alongside their pristine L-Series lenses. They are workhorses that deliver phenomenal image quality at high resolutions, with gorgeous colour rendition, time and time again.",
+    techPara2:
+      "In our photography studio, we choose Pixapro lighting with widespread compatibility across a huge array of modifiers and shapes to give our clients endless creative choices.",
+    wholePackageHeading: "The whole package",
+    wholePackagePara1:
+      "Our photographers love making things look great with their camera and magical lighting combinations.",
+    wholePackagePara2:
+      "We are also assisted by an enviable array of trusted industry talent who work alongside us on shoots, such as food and prop stylists, hair and make up artists, set builders and art directors, along with models and actors when required.",
+    wholePackagePara3:
+      "Add our access to endless location possibilities to shoot in and we’re confident of being able to pull the right creative elements together to answer any client brief.",
+  },
+}
+
+export function parsePhotographyServicesFromWpPage(pageNode) {
+  const merged = JSON.parse(
+    JSON.stringify(DEFAULT_PHOTOGRAPHY_SERVICES_CONTENT)
+  )
+  if (!pageNode?.content) return merged
+  const lines = extractLinesFromHtml(pageNode.content)
+  lines.forEach(({ text }) => {
+    const colonIdx = text.indexOf(":")
+    if (colonIdx === -1) return
+    const key = text
+      .slice(0, colonIdx)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/(^_|_$)/g, "")
+    const val = text.slice(colonIdx + 1).trim()
+    if (!val) return
+    switch (key) {
+      case "hero_heading":
+        merged.hero.heading = val
+        break
+      case "hero_video_url":
+        merged.hero.videoUrl = val
+        break
+      case "hero_description":
+      case "hero_right_text":
+        merged.hero.rightText = val
+        break
+      case "left_paragraph_1":
+        merged.gridSection.leftPara1 = val
+        break
+      case "left_paragraph_2":
+        merged.gridSection.leftPara2 = val
+        break
+      case "right_paragraph_2":
+        merged.gridSection.rightPara2 = val
+        break
+      case "cta_heading":
+        merged.ctaBand.heading = val
+        break
+      case "how_we_work_heading":
+        merged.details.howWeWorkHeading = val
+        break
+      case "how_we_work_paragraph_1":
+        merged.details.howWeWorkPara1 = val
+        break
+      default:
+        break
+    }
+  })
+  return merged
+}
+
+/* ---------------- Node Finders for Services & Pricing ---------------- */
+
+export function findServicesPageNode(pageNodes = []) {
+  if (!Array.isArray(pageNodes) || pageNodes.length === 0) return null
+  return (
+    pageNodes.find(
+      p =>
+        p.slug?.toLowerCase() === "services" ||
+        p.slug?.toLowerCase() === "our-services" ||
+        p.title?.toLowerCase() === "services" ||
+        p.title?.toLowerCase() === "our services"
+    ) || null
+  )
+}
+
+export function findPricingPageNode(pageNodes = []) {
+  if (!Array.isArray(pageNodes) || pageNodes.length === 0) return null
+  return (
+    pageNodes.find(
+      p =>
+        p.slug?.toLowerCase() === "pricing" ||
+        p.slug?.toLowerCase() === "prices" ||
+        p.title?.toLowerCase() === "pricing" ||
+        p.title?.toLowerCase() === "prices"
+    ) || null
+  )
+}
+
+export function findVideographyServicesPageNode(pageNodes = []) {
+  if (!Array.isArray(pageNodes) || pageNodes.length === 0) return null
+  return (
+    pageNodes.find(
+      p =>
+        p.slug?.toLowerCase() === "videography-services" ||
+        p.slug?.toLowerCase() === "video-production-services" ||
+        p.title?.toLowerCase() === "videography services" ||
+        p.title?.toLowerCase() === "video production services"
+    ) || null
+  )
+}
+
+export function findPhotographyServicesPageNode(pageNodes = []) {
+  if (!Array.isArray(pageNodes) || pageNodes.length === 0) return null
+  return (
+    pageNodes.find(
+      p =>
+        p.slug?.toLowerCase() === "photography-services" ||
+        p.title?.toLowerCase() === "photography services"
+    ) || null
+  )
+}
+
+/* ---------------- Cache & Live Fetch for Services & Pricing ---------------- */
+
+const SERVICES_CACHE_KEY = "pocket_wp_services_cache_v1"
+const PRICING_CACHE_KEY = "pocket_wp_pricing_cache_v1"
+const VIDEO_SERVICES_CACHE_KEY = "pocket_wp_video_services_cache_v1"
+const PHOTO_SERVICES_CACHE_KEY = "pocket_wp_photo_services_cache_v1"
+
+export function getCachedWpServices() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(SERVICES_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
+export function setCachedWpServices(data) {
+  if (typeof window === "undefined" || !data) return
+  try {
+    window.localStorage.setItem(SERVICES_CACHE_KEY, JSON.stringify(data))
+  } catch (e) {}
+}
+
+export function getCachedWpPricing() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(PRICING_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
+export function setCachedWpPricing(data) {
+  if (typeof window === "undefined" || !data) return
+  try {
+    window.localStorage.setItem(PRICING_CACHE_KEY, JSON.stringify(data))
+  } catch (e) {}
+}
+
+export function getCachedWpVideographyServices() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(VIDEO_SERVICES_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
+export function setCachedWpVideographyServices(data) {
+  if (typeof window === "undefined" || !data) return
+  try {
+    window.localStorage.setItem(VIDEO_SERVICES_CACHE_KEY, JSON.stringify(data))
+  } catch (e) {}
+}
+
+export function getCachedWpPhotographyServices() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(PHOTO_SERVICES_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
+export function setCachedWpPhotographyServices(data) {
+  if (typeof window === "undefined" || !data) return
+  try {
+    window.localStorage.setItem(PHOTO_SERVICES_CACHE_KEY, JSON.stringify(data))
+  } catch (e) {}
+}
+
+export async function fetchLiveWpServices() {
+  const response = await fetch(`${WP_GRAPHQL_ENDPOINT}?cb=${Date.now()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ query: PAGES_QUERY }),
+  })
+  if (!response.ok) {
+    throw new Error(`WPGraphQL services page request failed: ${response.status}`)
+  }
+  const json = await response.json()
+  const pages = json?.data?.pages?.nodes || []
+  const node = findServicesPageNode(pages)
+  const parsed = parseServicesFromWpPage(node)
+  setCachedWpServices(parsed)
+  return parsed
+}
+
+export async function fetchLiveWpPricing() {
+  const response = await fetch(`${WP_GRAPHQL_ENDPOINT}?cb=${Date.now()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ query: PAGES_QUERY }),
+  })
+  if (!response.ok) {
+    throw new Error(`WPGraphQL pricing page request failed: ${response.status}`)
+  }
+  const json = await response.json()
+  const pages = json?.data?.pages?.nodes || []
+  const node = findPricingPageNode(pages)
+  const parsed = parsePricingFromWpPage(node)
+  setCachedWpPricing(parsed)
+  return parsed
+}
+
+export async function fetchLiveWpVideographyServices() {
+  const response = await fetch(`${WP_GRAPHQL_ENDPOINT}?cb=${Date.now()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ query: PAGES_QUERY }),
+  })
+  if (!response.ok) {
+    throw new Error(`WPGraphQL videography services request failed: ${response.status}`)
+  }
+  const json = await response.json()
+  const pages = json?.data?.pages?.nodes || []
+  const node = findVideographyServicesPageNode(pages)
+  const parsed = parseVideographyServicesFromWpPage(node)
+  setCachedWpVideographyServices(parsed)
+  return parsed
+}
+
+export async function fetchLiveWpPhotographyServices() {
+  const response = await fetch(`${WP_GRAPHQL_ENDPOINT}?cb=${Date.now()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ query: PAGES_QUERY }),
+  })
+  if (!response.ok) {
+    throw new Error(`WPGraphQL photography services request failed: ${response.status}`)
+  }
+  const json = await response.json()
+  const pages = json?.data?.pages?.nodes || []
+  const node = findPhotographyServicesPageNode(pages)
+  const parsed = parsePhotographyServicesFromWpPage(node)
+  setCachedWpPhotographyServices(parsed)
+  return parsed
+}
+
+
