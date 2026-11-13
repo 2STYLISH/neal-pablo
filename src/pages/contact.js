@@ -1,7 +1,14 @@
 import * as React from "react"
-import { Link } from "gatsby"
+import { Link, graphql } from "gatsby"
 import Layout from "../components/Layout"
 import ContactModal, { ModalContext } from "../components/ContactModal"
+import {
+  DEFAULT_CONTACT_CONTENT,
+  parseContactFromWpPage,
+  findContactPageNode,
+  fetchLiveWpContact,
+  getCachedWpContact,
+} from "../utils/wpPagesContent"
 
 import locationHeroImg from "../images/contact/location-hero.png"
 import vacanciesImg from "../images/contact/vacancies.png"
@@ -10,8 +17,49 @@ import iconPhone from "../images/contact/icon-phone.png"
 import iconLocation from "../images/contact/icon-location.png"
 import iconEmail from "../images/contact/icon-email.png"
 
-const ContactPage = () => {
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
+const ContactPage = ({ data }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const buildTimePageNodes = data?.allWpPage?.nodes || []
+  const buildTimeContactNode = findContactPageNode(buildTimePageNodes)
+  const [contactContent, setContactContent] = React.useState(() =>
+    parseContactFromWpPage(buildTimeContactNode)
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    const cached = getCachedWpContact()
+    if (cached) {
+      setContactContent(cached)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isMounted = true
+    fetchLiveWpContact()
+      .then(liveContent => {
+        if (isMounted && liveContent) {
+          setContactContent(liveContent)
+        }
+      })
+      .catch(() => {
+        // Keep cached or build-time fallback if offline
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const hero = contactContent.hero || DEFAULT_CONTACT_CONTENT.hero
+  const locationBar =
+    contactContent.locationBar || DEFAULT_CONTACT_CONTENT.locationBar
+  const vacanciesAndPartners =
+    contactContent.vacanciesAndPartners ||
+    DEFAULT_CONTACT_CONTENT.vacanciesAndPartners
+
+  const cleanPhoneHref = `tel:${(locationBar.phone || "02036338494").replace(/\s+/g, "")}`
 
   return (
     <ModalContext.Provider value={{ isOpen, setIsOpen }}>
@@ -25,22 +73,20 @@ const ContactPage = () => {
               {/* Left Heading & Intro (#2255:1178 & #2255:1183, x:249, w:636) */}
               <div className="max-w-[636px] shrink-0 lg:pt-[3px]">
                 <h1 className="text-[48px] sm:text-[80px] lg:text-[120px] font-extrabold leading-[1] tracking-[-0.05em] text-white">
-                  Grab a latte
+                  {hero.headingLine1}
                   <br />
-                  and let&apos;s
+                  {hero.headingLine2}
                   <br />
-                  have a chat
+                  {hero.headingLine3}
                 </h1>
 
                 <div className="mt-8 lg:mt-[46px] max-w-[599px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[1.2] lg:leading-[20px] tracking-[-0.05em] text-white space-y-5">
-                  <p>
-                    Want to talk about your new project with our video and photography agency team?
-                  </p>
-                  <p>
-                    We aim to reply within <strong className="font-bold">1 hour</strong> during normal working hours,
-                    so we can get you that quote and any more information as quickly as possible.
-                  </p>
-                  <p>We’d love to hear from you!</p>
+                  <p>{hero.para1}</p>
+                  <p
+                    key={hero.para2Html}
+                    dangerouslySetInnerHTML={{ __html: hero.para2Html }}
+                  />
+                  <p>{hero.para3}</p>
                 </div>
               </div>
 
@@ -113,7 +159,7 @@ const ContactPage = () => {
                     type="submit"
                     className="w-[188px] h-[54px] rounded-[16px] bg-brand-yellow text-[20px] font-extrabold tracking-[-0.05em] text-black hover:brightness-105 transition"
                   >
-                    Send
+                    {hero.buttonText || "Send"}
                   </button>
                 </div>
               </form>
@@ -128,7 +174,7 @@ const ContactPage = () => {
               {/* 3 Contact Items (#2385:1361) */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                 <a
-                  href="tel:02036338494"
+                  href={cleanPhoneHref}
                   className="flex items-center gap-6 lg:gap-[33px] group"
                 >
                   <img
@@ -138,12 +184,12 @@ const ContactPage = () => {
                     className="w-[72px] h-[72px] lg:w-[104px] lg:h-[104px] shrink-0"
                   />
                   <span className="text-[18px] lg:text-[20px] font-extrabold leading-[24px] tracking-[-0.05em] text-brand-slate group-hover:text-brand-blue transition">
-                    020 3633 8494
+                    {locationBar.phone}
                   </span>
                 </a>
 
                 <a
-                  href="https://maps.google.com/maps?q=wow+workspaces+battersea"
+                  href={locationBar.mapUrl || "https://maps.google.com/maps?q=wow+workspaces+battersea"}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-6 lg:gap-[33px] group"
@@ -155,16 +201,16 @@ const ContactPage = () => {
                     className="w-[72px] h-[72px] lg:w-[104px] lg:h-[104px] shrink-0"
                   />
                   <span className="text-[18px] lg:text-[20px] font-extrabold leading-[24px] tracking-[-0.05em] text-brand-slate group-hover:text-brand-blue transition">
-                    Wow Workspaces Battersea
+                    {locationBar.addressLine1}
                     <br />
-                    Unit 3, 7-9 Ingate Place
+                    {locationBar.addressLine2}
                     <br />
-                    Battersea, London SW8 3NS
+                    {locationBar.addressLine3}
                   </span>
                 </a>
 
                 <a
-                  href="mailto:team@pocketcreatives.co.uk"
+                  href={`mailto:${locationBar.email || "team@pocketcreatives.co.uk"}`}
                   className="flex items-center gap-6 lg:gap-[33px] group"
                 >
                   <img
@@ -174,14 +220,14 @@ const ContactPage = () => {
                     className="w-[72px] h-[72px] lg:w-[104px] lg:h-[104px] shrink-0"
                   />
                   <span className="text-[18px] lg:text-[20px] font-extrabold leading-[20px] tracking-[-0.05em] text-brand-slate group-hover:text-brand-blue transition">
-                    team@pocketcreatives.co.uk
+                    {locationBar.email}
                   </span>
                 </a>
               </div>
 
               {/* Google Map Image (#2257:1611, w:1443, h:809) */}
               <a
-                href="https://maps.google.com/maps?q=wow+workspaces+battersea"
+                href={locationBar.mapUrl || "https://maps.google.com/maps?q=wow+workspaces+battersea"}
                 target="_blank"
                 rel="noreferrer"
                 className="block mt-8 lg:mt-[36px]"
@@ -209,17 +255,16 @@ const ContactPage = () => {
 
               <div className="lg:pt-[61px] max-w-[437px]">
                 <h2 className="text-[32px] sm:text-[36px] lg:text-[40px] font-extrabold leading-[1] tracking-[-0.05em] text-black">
-                  Vacancies
+                  {vacanciesAndPartners.vacanciesHeading}
                 </h2>
                 <p className="mt-6 lg:mt-[40px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-black">
-                  At our video and photography agency we always want to hear from great people and create regular
-                  opportunities. Feel free to send us your information to the address below:
+                  {vacanciesAndPartners.vacanciesText}
                 </p>
                 <a
-                  href="mailto:jobs@pocketcreatives.co.uk"
+                  href={`mailto:${vacanciesAndPartners.vacanciesEmail || "jobs@pocketcreatives.co.uk"}`}
                   className="mt-6 lg:mt-[26px] inline-flex items-center justify-center bg-brand-blue px-[15px] h-[37px] text-[18px] lg:text-[20px] font-extrabold leading-[24px] tracking-[-0.05em] text-white hover:brightness-110 transition"
                 >
-                  jobs@pocketcreatives.co.uk
+                  {vacanciesAndPartners.vacanciesEmail}
                 </a>
               </div>
             </div>
@@ -228,17 +273,16 @@ const ContactPage = () => {
             <div className="mt-14 lg:mt-[76px] lg:pl-[127px] flex flex-col-reverse lg:flex-row items-start gap-8 lg:gap-[126px]">
               <div className="lg:pt-[62px] max-w-[381px] shrink-0">
                 <h2 className="text-[32px] sm:text-[36px] lg:text-[40px] font-extrabold leading-[1] tracking-[-0.05em] text-black">
-                  Partners
+                  {vacanciesAndPartners.partnersHeading}
                 </h2>
                 <p className="mt-6 lg:mt-[28px] text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] tracking-[-0.05em] text-black">
-                  Our video and photography agency also has links to some excellent partners who work in other creative
-                  industries. If you think you’d make a good Pocket Partner, mail us below:
+                  {vacanciesAndPartners.partnersText}
                 </p>
                 <a
-                  href="mailto:partners@pocketcreatives.co.uk"
+                  href={`mailto:${vacanciesAndPartners.partnersEmail || "partners@pocketcreatives.co.uk"}`}
                   className="mt-6 lg:mt-[35px] inline-flex items-center justify-center bg-brand-blue px-[15px] h-[37px] text-[18px] lg:text-[20px] font-extrabold leading-[24px] tracking-[-0.05em] text-white hover:brightness-110 transition"
                 >
-                  partners@pocketcreatives.co.uk
+                  {vacanciesAndPartners.partnersEmail}
                 </a>
               </div>
 
@@ -253,9 +297,9 @@ const ContactPage = () => {
                   to="/works"
                   className="absolute -top-10 right-2 lg:-top-[76px] lg:-right-[62px] w-[100px] h-[100px] lg:w-[125px] lg:h-[125px] rounded-full bg-brand-blue text-white flex items-center justify-center text-center text-[20px] lg:text-[25px] font-extrabold leading-[1] tracking-[-0.05em] rotate-[10deg] shadow-md hover:scale-105 transition-transform"
                 >
-                  See Our
+                  {vacanciesAndPartners.badgeLine1 || "See Our"}
                   <br />
-                  Works
+                  {vacanciesAndPartners.badgeLine2 || "Works"}
                 </Link>
               </div>
             </div>
@@ -265,6 +309,27 @@ const ContactPage = () => {
     </ModalContext.Provider>
   )
 }
+
+export const query = graphql`
+  query ContactPageWordPressQuery {
+    allWpPage {
+      nodes {
+        id
+        databaseId
+        title
+        slug
+        isFrontPage
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
+      }
+    }
+  }
+`
 
 export default ContactPage
 
@@ -277,4 +342,3 @@ export const Head = () => (
     />
   </>
 )
-

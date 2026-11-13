@@ -1859,4 +1859,224 @@ export async function fetchLiveWpPhotographyServices() {
   return parsed
 }
 
+/* ==========================================================================
+   6. CONTACT PAGE DEFAULT CONTENT & PARSER (/contact)
+   ========================================================================== */
+
+export const DEFAULT_CONTACT_CONTENT = {
+  hero: {
+    headingLine1: "Grab a latte",
+    headingLine2: "and let's",
+    headingLine3: "have a chat",
+    para1:
+      "Want to talk about your new project with our video and photography agency team?",
+    para2Html: `We aim to reply within <strong class="font-bold">1 hour</strong> during normal working hours, so we can get you that quote and any more information as quickly as possible.`,
+    para3: "We’d love to hear from you!",
+    buttonText: "Send",
+  },
+  locationBar: {
+    phone: "020 3633 8494",
+    addressLine1: "Wow Workspaces Battersea",
+    addressLine2: "Unit 3, 7-9 Ingate Place",
+    addressLine3: "Battersea, London SW8 3NS",
+    mapUrl: "https://maps.google.com/maps?q=wow+workspaces+battersea",
+    email: "team@pocketcreatives.co.uk",
+  },
+  vacanciesAndPartners: {
+    vacanciesHeading: "Vacancies",
+    vacanciesText:
+      "At our video and photography agency we always want to hear from great people and create regular opportunities. Feel free to send us your information to the address below:",
+    vacanciesEmail: "jobs@pocketcreatives.co.uk",
+    partnersHeading: "Partners",
+    partnersText:
+      "Our video and photography agency also has links to some excellent partners who work in other creative industries. If you think you’d make a good Pocket Partner, mail us below:",
+    partnersEmail: "partners@pocketcreatives.co.uk",
+    badgeLine1: "See Our",
+    badgeLine2: "Works",
+  },
+}
+
+export function parseContactFromWpPage(pageNode) {
+  const merged = JSON.parse(JSON.stringify(DEFAULT_CONTACT_CONTENT))
+  if (!pageNode) return merged
+
+  const rawHtml = pageNode.content || ""
+  if (!rawHtml.trim()) return merged
+
+  const lines = extractLinesFromHtml(rawHtml)
+  let matchedAnyKey = false
+
+  lines.forEach(({ rawInner, text }) => {
+    const colonIdx = text.indexOf(":")
+    if (colonIdx === -1) return
+    const key = text
+      .slice(0, colonIdx)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/(^_|_$)/g, "")
+    const val = text.slice(colonIdx + 1).trim()
+    const rawVal = rawInner.includes(":")
+      ? rawInner.slice(rawInner.indexOf(":") + 1).trim()
+      : val
+    if (!val) return
+
+    switch (key) {
+      // 1. Hero
+      case "hero_heading_line_1":
+        merged.hero.headingLine1 = val
+        matchedAnyKey = true
+        break
+      case "hero_heading_line_2":
+        merged.hero.headingLine2 = val
+        matchedAnyKey = true
+        break
+      case "hero_heading_line_3":
+        merged.hero.headingLine3 = val
+        matchedAnyKey = true
+        break
+      case "hero_paragraph_1":
+      case "hero_para_1":
+        merged.hero.para1 = val
+        matchedAnyKey = true
+        break
+      case "hero_paragraph_2":
+      case "hero_para_2":
+        merged.hero.para2Html = rawVal
+        matchedAnyKey = true
+        break
+      case "hero_paragraph_3":
+      case "hero_para_3":
+        merged.hero.para3 = val
+        matchedAnyKey = true
+        break
+      case "hero_button":
+      case "form_button":
+        merged.hero.buttonText = val
+        matchedAnyKey = true
+        break
+
+      // 2. Location & Contact Bar
+      case "contact_phone":
+      case "phone":
+      case "phone_number":
+        merged.locationBar.phone = val
+        matchedAnyKey = true
+        break
+      case "address_line_1":
+        merged.locationBar.addressLine1 = val
+        matchedAnyKey = true
+        break
+      case "address_line_2":
+        merged.locationBar.addressLine2 = val
+        matchedAnyKey = true
+        break
+      case "address_line_3":
+        merged.locationBar.addressLine3 = val
+        matchedAnyKey = true
+        break
+      case "map_url":
+      case "google_maps_url":
+        merged.locationBar.mapUrl = val
+        matchedAnyKey = true
+        break
+      case "contact_email":
+      case "email":
+      case "email_address":
+        merged.locationBar.email = val
+        matchedAnyKey = true
+        break
+
+      // 3. Vacancies & Partners
+      case "vacancies_heading":
+        merged.vacanciesAndPartners.vacanciesHeading = val
+        matchedAnyKey = true
+        break
+      case "vacancies_text":
+      case "vacancies_description":
+        merged.vacanciesAndPartners.vacanciesText = val
+        matchedAnyKey = true
+        break
+      case "vacancies_email":
+        merged.vacanciesAndPartners.vacanciesEmail = val
+        matchedAnyKey = true
+        break
+      case "partners_heading":
+        merged.vacanciesAndPartners.partnersHeading = val
+        matchedAnyKey = true
+        break
+      case "partners_text":
+      case "partners_description":
+        merged.vacanciesAndPartners.partnersText = val
+        matchedAnyKey = true
+        break
+      case "partners_email":
+        merged.vacanciesAndPartners.partnersEmail = val
+        matchedAnyKey = true
+        break
+      default:
+        break
+    }
+  })
+
+  if (!matchedAnyKey && lines.length > 0) {
+    merged.hero.para1 = lines[0].text
+  }
+
+  return merged
+}
+
+export function findContactPageNode(pageNodes = []) {
+  if (!Array.isArray(pageNodes) || pageNodes.length === 0) return null
+  return (
+    pageNodes.find(
+      p =>
+        p.slug?.toLowerCase() === "contact" ||
+        p.slug?.toLowerCase() === "contact-us" ||
+        p.slug?.toLowerCase() === "contacts" ||
+        p.title?.toLowerCase() === "contact" ||
+        p.title?.toLowerCase() === "contact us" ||
+        p.title?.toLowerCase() === "contacts"
+    ) || null
+  )
+}
+
+const CONTACT_CACHE_KEY = "pocket_wp_contact_cache_v1"
+
+export function getCachedWpContact() {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(CONTACT_CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    return null
+  }
+}
+
+export function setCachedWpContact(data) {
+  if (typeof window === "undefined" || !data) return
+  try {
+    window.localStorage.setItem(CONTACT_CACHE_KEY, JSON.stringify(data))
+  } catch (e) {}
+}
+
+export async function fetchLiveWpContact() {
+  const response = await fetch(`${WP_GRAPHQL_ENDPOINT}?cb=${Date.now()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ query: PAGES_QUERY }),
+  })
+  if (!response.ok) {
+    throw new Error(`WPGraphQL contact page request failed: ${response.status}`)
+  }
+  const json = await response.json()
+  const pages = json?.data?.pages?.nodes || []
+  const node = findContactPageNode(pages)
+  const parsed = parseContactFromWpPage(node)
+  setCachedWpContact(parsed)
+  return parsed
+}
+
+
 
